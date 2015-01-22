@@ -29,9 +29,6 @@ clean:
 	$(RM) $(DEPS)
 	$(RM) $(DIRS)
 
-$(DEPFILE): $(CPPFILES)
-	gcc $(CXXFLAGS) -MM $^ > $@ 2> /dev/null
-
 test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
