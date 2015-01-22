@@ -1,0 +1,10 @@
+digraph normal {
+	s -> a [label=15];
+	s -> c [label=4];
+	a -> b [label=12];
+	b -> c [label=3];
+	b -> t [label=7];
+	c -> d [label=10];
+	d -> b [label=5];
+	d -> t [label=10];
+}

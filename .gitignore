@@ -1,0 +1,9 @@
+# Vim swap files
+*.swp
+
+# Generated files
+.deps/
+bin/
+
+# Final program
+test
