@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-Wall -Wextra -pedantic -O3 -std=c++11
+CXXFLAGS=-Wall -Wextra -pedantic -O3 -std=c++11 -g
 RM=rm -rf
 MKDIR=mkdir -p
 

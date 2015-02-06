@@ -3,6 +3,9 @@
 #include "AbstractGraph.h"
 #include "FFTuple.h"
 #include "EKTuple.h"
+#include "PushRelabel.h"
+#include <vector>
+#include <string>
 
 using namespace std;
 
@@ -15,7 +18,6 @@ void testWorstCase(AbstractGraph& g) {
 	g.addEdge('b', 't', 1000);
 	g.addEdge('a', 'a', 1);
 
-	cout << g.maxFlow('s', 't') << endl;
 	assert(g.maxFlow('s', 't') == 2000);
 }
 
@@ -31,14 +33,21 @@ void testNormal(AbstractGraph& g) {
 	g.addEdge('d', 'b', 5);
 	g.addEdge('d', 't', 10);
 
-	cout << g.maxFlow('s', 't') << endl;
 	assert(g.maxFlow('s', 't') == 14);
 }
 
 int main() {
-	EKTuple graph;
-	testWorstCase(graph);
-	testNormal(graph);
-	cout << "OK" << endl;
+	EKTuple eKGraph;
+	FFTuple fFGraph;
+	PushRelabel pRGraph;
+	const vector<AbstractGraph*> graphs = {&eKGraph, &fFGraph, &pRGraph};
+	const vector<string> names = {"Edmonds-Karp", "Ford-Fulkerson", "Push-relabel"};
+	for (unsigned int i = 0; i < graphs.size(); i++) {
+		cout << "Testing " << names[i] << "... ";
+		AbstractGraph& graph = *graphs[i];
+		testWorstCase(graph);
+		testNormal(graph);
+		cout << "OK" << endl;
+	}
 	return 0;
 }
