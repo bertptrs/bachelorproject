@@ -9,7 +9,8 @@ OBJDIR=bin
 DEPDIR=.deps
 
 DIRS=$(OBJDIR)\
-	 $(DEPDIR)
+	 $(DEPDIR)\
+	 report/build
 
 CPPFILES=$(wildcard src/*.cpp)
 
@@ -17,15 +18,21 @@ _OBJS=$(patsubst %.cpp, %.o, $(notdir $(CPPFILES)))
 DEPS=$(patsubst %.o, $(DEPDIR)/%.depend, $(_OBJS))
 OBJS=$(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
-.PHONY: all clean run config
+.PHONY: all clean run config report.pdf
 
 all: test
+
+report.pdf:
+	mkdir -p report/build
+	latexmk -xelatex -cd report/master -outdir=build -auxdir=build
+	cp report/build/master.pdf $@
 
 $(DIRS):
 	$(MKDIR) $@
 
 clean:
 	$(RM) test
+	$(RM) report.pdf
 	$(RM) $(DEPS)
 	$(RM) $(DIRS)
 
