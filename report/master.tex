@@ -29,7 +29,7 @@
 
 \subsection{The problem}
 
-The problem we intend to solve is the max flow min cut problem. It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure \ref{fig:simple graph} has a maximum flow of 14, utilizing the capacities as shown.
+The problem we intend to solve is the max flow min cut problem. It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
 
 \begin{figure}[h]
 \centering
@@ -55,7 +55,7 @@ The problem we intend to solve is the max flow min cut problem. It was first for
     ;
 \end{tikzpicture}
 \caption{A simple graph with flows.}
-\label{fig:simple graph}
+\label{fig:simple-graph}
 \end{figure}
 
 It should be noted that the flow configuration for the maximum flow is not necessarily unique, although in this example it is. The only requirement is that for each node (excluding the source and the sink) the incoming flow is equal to the outgoing flow.
@@ -119,7 +119,7 @@ A new property that is used, is the height function $H(u)$, which holds the curr
 
 The algorithm has two operations. The \textsc{Push} operation pushes excess flow from a node $u$ to a connected node $v$. It is allowed only when $H(u) = H(v) + 1$. If no valid push is possible, a node must be relabeled with the \textsc{Relabel} operation. This method increases $H(u)$ to the minimum level so that a new push is allowed.
 
-The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm \ref{algo:push-relabel}.
+The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm~\ref{algo:push-relabel}.
 
 \begin{algorithm}
 \caption{A pseudo-code implementation of the generic Push-Relabel algorithm}
@@ -128,10 +128,10 @@ The algorithm starts by performing a satisfying push on the source node, which f
 \begin{algorithmic}
 \Function{Push}{$e, amount$}
 	\State $\delta \gets \min(amount, C(e.u, e.v) - F(e.u, e.v))$
-	\State $\Delta(e.u) = \Delta(e.u) - \delta$
-	\State $\Delta(e.v) = \Delta(e.v) + \delta$
-	\State $F(e.u, e.v) = F(e.u, e.v) + \delta$
-	\State $F(e.v, e.u) = F(e.v, e.u) - \delta$
+	\State $\Delta(e.u) \gets \Delta(e.u) - \delta$
+	\State $\Delta(e.v) \gets \Delta(e.v) + \delta$
+	\State $F(e.u, e.v) \gets F(e.u, e.v) + \delta$
+	\State $F(e.v, e.u) \gets F(e.v, e.u) - \delta$
 \EndFunction
 
 \State
