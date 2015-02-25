@@ -116,7 +116,7 @@ double PushRelabel::maxFlow(const int s, const int t) {
 
 PushRelabel::eptr PushRelabel::getBackEdge(const eptr& edge) const {
 	eset candidates = forPredicate([edge](const eptr other) -> bool { return edge->origin == other->destination && edge->destination == other->origin; });
-	assert(candidates.size() == 1);
+	assert(candidates.size() >= 1);
 
 	return *candidates.begin();
 }

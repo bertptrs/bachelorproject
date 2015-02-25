@@ -18,7 +18,7 @@ class PushRelabel : public AbstractGraph {
 			double flow;
 		};
 		typedef shared_ptr<Edge> eptr;
-		typedef set<eptr> eset;
+		typedef multiset<eptr> eset;
 		typedef set<int> iset;
 		map<int, int> heights;
 		map<int, double> excess;
