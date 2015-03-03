@@ -33,9 +33,6 @@ class PushRelabel(Algorithm):
             if edge.u == source:
                 self.push(edge, float("inf")) # Should be a better solution
 
-    def getBackEdge(self, edge):
-        return Edge(edge.v, edge.u)
-
     def push(self, edge, amount):
         delta = max(0, min(amount, self.C[edge] - self.F[edge]))
         backEdge = self.getBackEdge(edge)

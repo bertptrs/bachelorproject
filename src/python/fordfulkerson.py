@@ -18,9 +18,6 @@ class FordFulkerson(Algorithm):
                 self.C[backEdge] = 0
                 self.F[backEdge] = 0
                 self.E.append(backEdge)
-        
-    def getBackEdge(self, edge):
-        return Edge(edge.v, edge.u)
 
     def findPath(self, path, source, sink):
         if source == sink:

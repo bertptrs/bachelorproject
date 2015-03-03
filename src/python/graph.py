@@ -66,3 +66,8 @@ class Algorithm:
                 flow += self.F[edge]
 
         return flow
+
+    # Get the inverse edge for an edge.
+    def getBackEdge(self, edge):
+        return Edge(edge.v, edge.u)
+
