@@ -2,6 +2,7 @@ import random
 from collections import namedtuple
 
 Edge = namedtuple('Edge', 'u v')
+WeightedEdge = namedtuple('WeightedEdge', 'u v c')
 
 class Algorithm:
 
@@ -16,6 +17,7 @@ class Algorithm:
         self.F = dict()
 
         self.sink = None
+        self.verbose = False
     
     def run(self, source, sink):
         self.sink = sink
@@ -23,10 +25,14 @@ class Algorithm:
         self.iterations = 0
         while not self.done():
             self.iter()
-            self.print_status()
+            if self.verbose:
+                self.print_status()
             self.iterations += 1
 
         return self.flow(sink)
+
+    def setVerbose(self, value):
+        self.verbose = value
 
     def test(self):
         self.addEdge('s', 'u', 10)
@@ -38,6 +44,7 @@ class Algorithm:
         flow = self.run('s', 't')
 
         assert flow == 11
+        self.setVerbose(True)
         print "Completed after " + str(self.iterations) + " iterations."
 
     def print_status(self):

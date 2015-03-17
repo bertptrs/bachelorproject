@@ -61,10 +61,12 @@ class PushRelabel(Algorithm):
         edge = self.getPushableEdge(node)
 
         if edge == None:
-            print "Relabeling " + str(node)
             self.relabel(node)
+            if self.verbose:
+                print "Relabeling " + str(node)
         else:
-            print "Pushing edge " + str(edge)
+            if self.verbose:
+                print "Pushing edge " + str(edge)
             self.push(edge, self.D[node])
 
     def getActiveNode(self):
