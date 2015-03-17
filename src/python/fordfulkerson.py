@@ -37,7 +37,8 @@ class FordFulkerson(Algorithm):
         return None
 
     def done(self):
-        return self.findPath(list(), self.source, self.sink) == None
+        path = self.findPath(list(), self.source, self.sink)
+        return path == None or len(path) == 0
 
     def iter(self):
         path = self.findPath(list(), self.source, self.sink)
