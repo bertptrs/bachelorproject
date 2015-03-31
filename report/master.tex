@@ -6,22 +6,46 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{makeidx}
+
 \usepackage{hyperref}
-\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\newcommand{\algorithmautorefname}{algorithm}
+
+\usepackage{cite}
+
 \usepackage{listings}
+\lstset{
+	tabsize=4,
+	morekeywords={forelem}
+}
+
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
 
-\usepackage{dot2texi}
+\usepackage{datetime}
+
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows}
 
-\author{Bert Peters}
-\title{Utilizing a tuple based optimization framework for graph algorithms}
-\makeindex
+% Preamble for the LIACS style
+\setlength{\textheight}{24.7cm}
+\setlength{\textwidth}{16cm}
+\setlength{\unitlength}{1mm}
+\setlength{\topskip}{1truecm}
+\topmargin 280mm \advance \topmargin -\textheight
+\divide \topmargin by 2 \advance \topmargin -1in
+\headheight 0pt \headsep 0pt
+\leftmargin 210mm \advance \leftmargin -\textwidth
+\divide \leftmargin by 2 \advance \leftmargin -1in
+\oddsidemargin \leftmargin \evensidemargin \leftmargin
+\parindent=0pt
+\frenchspacing
+
+\newcommand{\bree}[1]{\makebox[4.1cm][l]{#1:}}
+
 \begin{document}
-\maketitle
+
+\include{frontpage}
 
 \tableofcontents
 
@@ -60,7 +84,7 @@ The problem we intend to solve is the max flow min cut problem. It was first for
 
 It should be noted that the flow configuration for the maximum flow is not necessarily unique, although in this example it is. The only requirement is that for each node (excluding the source and the sink) the incoming flow is equal to the outgoing flow.
 
-\subsection{Ford-Fulkerson algorithm}
+\subsubsection{Ford-Fulkerson algorithm}
 
 The Ford-Fulkerson algorithm computes for a given directed graph of edges $(u, v, c)$ with $u$ and $v$ nodes and $c$ the capacity for the edge, the maximum ``flow'' from a given source $s$ to a sink $t$, given that the flow of an edge $e$ can never exceed its capacity. The algorithm assumes that
 
@@ -111,7 +135,7 @@ The algorithm works as follows. We define $f(u,v)$ and $c(u, v)$ as the flow and
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Push-Relabel algorithm}
+\subsubsection{Push-Relabel algorithm}
 
 We define the set of nodes, $V$, and the set of edges $E$. Furthermore, we define the function $\Delta(u)$ which denotes the current excess flow at node $u$, and $F(u, v)$ and $C(u, v)$, which denote the current flow and the flow capacity from $u$ to $v$ respectively. Both start at $0$ if the edge does not exist.
 
@@ -119,7 +143,7 @@ A new property that is used, is the height function $H(u)$, which holds the curr
 
 The algorithm has two operations. The \textsc{Push} operation pushes excess flow from a node $u$ to a connected node $v$. It is allowed only when $H(u) = H(v) + 1$. If no valid push is possible, a node must be relabeled with the \textsc{Relabel} operation. This method increases $H(u)$ to the minimum level so that a new push is allowed.
 
-The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm~\ref{algo:push-relabel}.
+The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm~\autoref{algo:push-relabel}.
 
 \begin{algorithm}
 \caption{A pseudo-code implementation of the generic Push-Relabel algorithm}
@@ -165,6 +189,24 @@ The algorithm starts by performing a satisfying push on the source node, which f
 
 \State $maxflow \gets \sum\limits_{e : e.v = t} F(e.u, e.v)$
 \end{algorithmic}
+\end{algorithm}
+
+\subsection{The forelem language}
+
+For this research, we will use the forelem framework \cite{Rietveld} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
+
+As an example, we take a set of tuples \texttt{A} with two values, \texttt{part1} and \texttt{part2}, and we want to calculate the sum of $\text{\texttt{part1}} \times \text{\texttt{part2}}$, then an algorithm could be expressed as in algorithm \ref{algo:forelem-sum}. In this algorithm, \texttt{pA} notates the set of indices for the tuple set A, with no guarantees of ordering of any kind. All that is known is that a tuple can be queried with an index. This leaves a compiler free to choose a data structure which does not have a strict ordering, like a set, or a structure without random access, like a linked list.
+
+Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. The actual transformations can be found in chapter 9 sections 4 to 7 of \cite{Rietveld} but is out of the scope of this thesis.
+
+\begin{algorithm}
+\caption{\emph{forelem} algorithm for summing the products of a set of tuples}
+\label{algo:forelem-sum}
+\begin{lstlisting}[mathescape]
+sum = 0
+forelem (i; i $\in$ pA)
+	sum = sum + A[i].part1 $\times$ A[i].part2
+\end{lstlisting}
 \end{algorithm}
 
 \bibliography{bibliography}
