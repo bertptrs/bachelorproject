@@ -3,7 +3,8 @@ CXXFLAGS=-Wall -Wextra -pedantic -O3 -std=c++11 -g
 RM=rm -rf
 MKDIR=mkdir -p
 
-VPATH = src/
+VPATH = src/\
+		report/
 
 OBJDIR=bin
 DEPDIR=.deps
@@ -22,10 +23,8 @@ OBJS=$(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
 all: test
 
-report.pdf:
-	mkdir -p report/build
-	latexmk -xelatex -cd report/master -outdir=build -auxdir=build
-	cp report/build/master.pdf $@
+report/build/thesis.pdf: thesis.tex $(shell find report -name "*.tex" -or -name "*.bib") | $(dir $@)
+	latexmk -xelatex -cd $< -outdir=build -auxdir=build
 
 $(DIRS):
 	$(MKDIR) $@

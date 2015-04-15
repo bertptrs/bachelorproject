@@ -1,0 +1,62 @@
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=3cm]{geometry}
+\usepackage{titling}
+\usepackage{amsmath, amssymb, amsthm, amsfonts}
+\usepackage{mathchars, mathtools, mathrsfs}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{latexsym}
+\usepackage{setspace}
+\usepackage{mdframed}
+\usepackage[font=small]{caption}
+\usepackage{color}
+\usepackage{contour}
+\usepackage{placeins}
+\usepackage{cite}
+\usepackage[mathscr]{euscript}
+\usepackage[osf]{mathpazo}
+\usepackage{pgf, tikz}
+\usepackage{subcaption}
+\usepackage{datetime}
+
+\usepackage{hyperref}
+
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+\usepackage{listings}
+\lstset{
+	tabsize=4,
+	morekeywords={forelem}
+}
+
+\usetikzlibrary{shapes,backgrounds,calc,arrows}
+
+\input{blocked.sty}
+\input{uhead.sty}
+\input{boxit.sty}
+\input{icthesis.sty}
+
+\newcommand{\normallinespacing}{\renewcommand{\baselinestretch}{1.5} \normalsize}
+\newcommand{\mediumlinespacing}{\renewcommand{\baselinestretch}{1.2} \normalsize}
+\newcommand{\narrowlinespacing}{\renewcommand{\baselinestretch}{1.0} \normalsize}
+
+\newtheorem{corollary}{Corollary}[chapter]
+\let\oldcor\corollary
+\renewcommand{\corollary}{\oldcor\normalfont}
+\newtheorem{definition}{Definition}[chapter]
+\let\olddef\definition
+\renewcommand{\definition}{\olddef\normalfont}
+\newtheorem{theorem}{Theorem}[chapter]
+\let\oldthm\theorem
+\renewcommand{\theorem}{\oldthm\normalfont}
+\newtheorem{example}{Example}
+\let\oldex\example
+\renewcommand{\example}{\oldex\normalfont}
+
+\newcommand\TODO[1]{\textbf{TODO}: \textit{#1}}
+\newcommand{\bree}[1]{\makebox[4.1cm][l]{#1:}}
+
+

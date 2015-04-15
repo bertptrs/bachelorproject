@@ -1,57 +1,6 @@
-\documentclass[10pt,a4paper,hidelinks]{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
-\usepackage{amsmath}
-\usepackage{cite}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{makeidx}
+\chapter{Introduction}
 
-\usepackage{hyperref}
-\newcommand{\algorithmautorefname}{algorithm}
-
-\usepackage{cite}
-
-\usepackage{listings}
-\lstset{
-	tabsize=4,
-	morekeywords={forelem}
-}
-
-\usepackage{algorithmicx}
-\usepackage{algpseudocode}
-\usepackage{algorithm}
-
-\usepackage{datetime}
-
-\usepackage{tikz}
-\usetikzlibrary{shapes,arrows}
-
-% Preamble for the LIACS style
-\setlength{\textheight}{24.7cm}
-\setlength{\textwidth}{16cm}
-\setlength{\unitlength}{1mm}
-\setlength{\topskip}{1truecm}
-\topmargin 280mm \advance \topmargin -\textheight
-\divide \topmargin by 2 \advance \topmargin -1in
-\headheight 0pt \headsep 0pt
-\leftmargin 210mm \advance \leftmargin -\textwidth
-\divide \leftmargin by 2 \advance \leftmargin -1in
-\oddsidemargin \leftmargin \evensidemargin \leftmargin
-\parindent=0pt
-\frenchspacing
-
-\newcommand{\bree}[1]{\makebox[4.1cm][l]{#1:}}
-
-\begin{document}
-
-\include{frontpage}
-
-\tableofcontents
-
-\section{Introduction}
-
-\subsection{The problem}
+\section{The problem}
 
 The problem we intend to solve is the max flow min cut problem. It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
 
@@ -84,7 +33,7 @@ The problem we intend to solve is the max flow min cut problem. It was first for
 
 It should be noted that the flow configuration for the maximum flow is not necessarily unique, although in this example it is. The only requirement is that for each node (excluding the source and the sink) the incoming flow is equal to the outgoing flow.
 
-\subsubsection{Ford-Fulkerson algorithm}
+\subsection{Ford-Fulkerson algorithm}
 
 The Ford-Fulkerson algorithm computes for a given directed graph of edges $(u, v, c)$ with $u$ and $v$ nodes and $c$ the capacity for the edge, the maximum ``flow'' from a given source $s$ to a sink $t$, given that the flow of an edge $e$ can never exceed its capacity. The algorithm assumes that
 
@@ -135,7 +84,7 @@ The algorithm works as follows. We define $f(u,v)$ and $c(u, v)$ as the flow and
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Push-Relabel algorithm}
+\subsection{Push-Relabel algorithm}
 
 We define the set of nodes, $V$, and the set of edges $E$. Furthermore, we define the function $\Delta(u)$ which denotes the current excess flow at node $u$, and $F(u, v)$ and $C(u, v)$, which denote the current flow and the flow capacity from $u$ to $v$ respectively. Both start at $0$ if the edge does not exist.
 
@@ -191,11 +140,11 @@ The algorithm starts by performing a satisfying push on the source node, which f
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{The forelem language}
+\section{The forelem language}
 
 For this research, we will use the forelem framework \cite{Rietveld} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
 
-As an example, we take a set of tuples \texttt{A} with two values, \texttt{part1} and \texttt{part2}, and we want to calculate the sum of $\text{\texttt{part1}} \times \text{\texttt{part2}}$, then an algorithm could be expressed as in algorithm \ref{algo:forelem-sum}. In this algorithm, \texttt{pA} notates the set of indices for the tuple set A, with no guarantees of ordering of any kind. All that is known is that a tuple can be queried with an index. This leaves a compiler free to choose a data structure which does not have a strict ordering, like a set, or a structure without random access, like a linked list.
+As an example, we take a set of tuples \texttt{A} with two values, \texttt{part1} and \texttt{part2}, and we want to calculate the sum of $\text{\texttt{part1}} \times \text{\texttt{part2}}$, then an algorithm could be expressed as in algorithm~\ref{algo:forelem-sum}. In this algorithm, \texttt{pA} notates the set of indices for the tuple set A, with no guarantees of ordering of any kind. All that is known is that a tuple can be queried with an index. This leaves a compiler free to choose a data structure which does not have a strict ordering, like a set, or a structure without random access, like a linked list.
 
 Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. The actual transformations can be found in chapter 9 sections 4 to 7 of \cite{Rietveld} but is out of the scope of this thesis.
 
@@ -208,8 +157,3 @@ forelem (i; i $\in$ pA)
 	sum = sum + A[i].part1 $\times$ A[i].part2
 \end{lstlisting}
 \end{algorithm}
-
-\bibliography{bibliography}
-\bibliographystyle{plain}
-
-\end{document}
