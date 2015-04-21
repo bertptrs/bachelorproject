@@ -18,7 +18,7 @@ class Algorithm:
 
         self.sink = None
         self.verbose = False
-    
+
     def run(self, source, sink):
         self.sink = sink
         self.init(source, sink)
@@ -51,7 +51,7 @@ class Algorithm:
         for edge in self.E:
             print str(edge) + " (" + str(self.C[edge]) + "): " + str(self.F[edge])
         print "Current flow at sink: " + str(self.flow(self.sink))
- 
+
     def addEdge(self, u, v, c):
         assert c > 0, "Capacities for edges should be positive."
         edge = Edge(u, v)

@@ -1,6 +1,7 @@
 import argparse
 import fordfulkerson
 import pushrelabel
+import pushlift
 import sys
 from collections import namedtuple
 
@@ -9,6 +10,7 @@ WeightedEdge = namedtuple('WeightedEdge', 'u v c')
 
 def getGraphs():
     return [
+			pushlift.PushLift(),
             pushrelabel.PushRelabel(),
             fordfulkerson.FordFulkerson()
             ]
