@@ -50,7 +50,7 @@ def readFileMatrixMarket(input):
     entries = scipy.sparse.find(matrix)
     for i in range(0, len(entries[0])):
         if entries[0][i] != entries[1][i]:
-            edges.append(WeightedEdge(entries[0][i], entries[1][i], entries[2][i]))
+            edges.append(WeightedEdge(str(entries[0][i]), str(entries[1][i]), entries[2][i]))
     
     return edges
 
