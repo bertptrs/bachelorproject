@@ -3,6 +3,8 @@ import fordfulkerson
 import pushrelabel
 import pushlift
 import sys
+import scipy.sparse
+import scipy.io
 from collections import namedtuple
 
 Edge = namedtuple('Edge', 'u v')
@@ -16,6 +18,16 @@ def getGraphs():
             ]
 
 def readFile(input, default=1.0):
+    if input.name.endswith(".edges"):
+        return readFileEdges(input, default)
+
+    if input.name.endswith(".mtx"):
+        return readFileMatrixMarket(input)
+    
+    print "Unsupported file format:", input.name
+    return list()
+    
+def readFileEdges(input, default):
     edges = list()
     for line in input:
         line = line.strip()
@@ -29,6 +41,17 @@ def readFile(input, default=1.0):
                 print "Invalid tuple provided:", components
                 sys.exit(1)
 
+    return edges
+
+def readFileMatrixMarket(input):
+    matrix = scipy.io.mmread(input)
+    edges = list()
+
+    entries = scipy.sparse.find(matrix)
+    for i in range(0, len(entries[0])):
+        if entries[0][i] != entries[1][i]:
+            edges.append(WeightedEdge(entries[0][i], entries[1][i], entries[2][i]))
+    
     return edges
 
 def initGraph(graph, edges):
