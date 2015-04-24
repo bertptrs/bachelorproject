@@ -3,6 +3,7 @@ import maxflow
 import sys
 import random
 import argparse
+import timing
 
 def main():
     parser = argparse.ArgumentParser()
