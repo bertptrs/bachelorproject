@@ -107,7 +107,7 @@ class PushLift(Algorithm):
         edges = set()
 
         for edge in self.E:
-            if edge.u is u:
+            if edge.u == u:
                 edges.add(edge)
 
         return edges

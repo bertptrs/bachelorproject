@@ -25,10 +25,14 @@ def main():
         if source == None:
             random.shuffle(edges)
             source = edges[0].u
+        else:
+            source = str(source)
 
         if sink == None:
             random.shuffle(edges)
             sink = edges[0].v
+        else:
+            sink = str(sink)
 
         print "Calculating flow over", maxflow.Edge(source, sink)
 
@@ -37,10 +41,10 @@ def main():
         for graph in graphs:
             maxflow.initGraph(graph, edges)
             if opts.algorithm is None or str(opts.algorithm) == str(graph.__class__.__name__):
-                print graph.__class__.__name__, ":", graph.run(source, sink)
+                print graph.__class__.__name__, ":", graph.run(source, sink), "(" + str(graph.iterations) + ")"
                 algos = algos + 1
 
-        if algos is 0:
+        if algos == 0:
             print "No known algorithm selected."
             sys.exit(2)
 
