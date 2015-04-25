@@ -1,5 +1,6 @@
 from graph import Edge, Algorithm
 import random
+from collections import deque
 
 class FordFulkerson(Algorithm):
 
@@ -23,11 +24,11 @@ class FordFulkerson(Algorithm):
         if source == sink:
             return path
 
-        edges = list(self.E)
+        edges = self.outbound(source)
         random.shuffle(edges)
 
         for edge in edges:
-            if edge.u == source and self.C[edge] > self.F[edge] and not edge in path:
+            if self.C[edge] > self.F[edge] and not edge in path:
                 newPath = list(path)
                 newPath.append(edge)
                 newPath = self.findPath(newPath, edge.v, sink)
@@ -35,6 +36,14 @@ class FordFulkerson(Algorithm):
                     return newPath
         
         return None
+
+    def outbound(self, node):
+        edges = list()
+        for edge in self.E:
+            if edge.u == node:
+                edges.append(edge)
+
+        return edges
 
     def done(self):
         path = self.findPath(list(), self.source, self.sink)
@@ -50,6 +59,49 @@ class FordFulkerson(Algorithm):
         for edge in path:
             self.F[edge] += minFlow
             self.F[self.getBackEdge(edge)] -= minFlow
+
+class EdmondsKarp(FordFulkerson):
+
+    def __init__(self):
+        FordFulkerson.__init__(self)
+
+    def findPath(self, path, source, sink):
+
+        visited = set()
+        prev = dict()
+
+        if source == sink:
+            return path
+
+        todo = deque([source])
+        while todo:
+            cur = todo.popleft()
+            if cur in visited:
+                continue
+
+            visited.add(cur)
+            edges = self.outbound(cur)
+            random.shuffle(edges)
+            for edge in edges:
+                if self.C[edge] <= self.F[edge]:
+                    continue
+
+                node = edge.v
+                if node not in prev and node not in visited:
+                    prev[node] = cur
+                    todo.append(node)
+
+                if node == sink:
+                    # Reconstruct path
+                    path = list()
+                    while node != source:
+                        prevNode = prev[node]
+                        path.append(Edge(prevNode, node))
+                        node = prevNode
+
+                    return path
+
+        return None
 
 if __name__ == '__main__':
     G = FordFulkerson()

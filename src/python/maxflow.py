@@ -14,7 +14,8 @@ def getGraphs():
     return [
 			pushlift.PushLift(),
             pushrelabel.PushRelabel(),
-            fordfulkerson.FordFulkerson()
+            fordfulkerson.FordFulkerson(),
+            fordfulkerson.EdmondsKarp()
             ]
 
 def readFile(input, default=1.0):
