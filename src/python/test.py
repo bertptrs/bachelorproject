@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python2 -u
 import maxflow
 import sys
 import random
