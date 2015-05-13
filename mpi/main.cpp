@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Argstate.h"
-#include "mpi.h"
+#include "MPI.h"
 #include "PushLift.h"
 
 using namespace std;

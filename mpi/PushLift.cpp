@@ -1,10 +1,12 @@
+#include <cassert>
+#include <iterator>
+
+#include "MPI.h"
+
 #include "PushLift.h"
 #include "FileReader.h"
 
 #include "utility.h"
-
-#include <cassert>
-#include <iterator>
 
 PushLift::PushLift(const Argstate& args) :
 	args(args)
@@ -106,12 +108,14 @@ void PushLift::initAlgo() {
 		edge.second = 0;
 	}
 
-	// Print debug output
-	if (rank == 0) {
-		cerr << "MPI master" << endl;
-		cerr << "MPI World size: " << worldSize << endl;
-	} else {
-		cerr << "MPI slave " << rank << endl;
+	if (args.isVerbose()) {
+		// Print debug output
+		if (rank == 0) {
+			cerr << "MPI master" << endl;
+			cerr << "MPI World size: " << worldSize << endl;
+		} else {
+			cerr << "MPI slave " << rank << endl;
+		}
 	}
 }
 

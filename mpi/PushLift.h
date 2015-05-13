@@ -3,7 +3,6 @@
 
 #include <random>
 #include <vector>
-#include "mpi.h"
 #include <utility>
 #include <list>
 

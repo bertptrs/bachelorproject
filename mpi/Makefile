@@ -1,4 +1,4 @@
-CXXFLAGS=-O3 -Wall -Wextra -pedantic -std=c++11 -flto -Wno-literal-suffix -march=native -g
+CXXFLAGS=-O3 -Wall -Wextra -pedantic -std=c++11 -flto -march=native -g
 CXX=mpic++
 
 OBJECTS=main.o \
