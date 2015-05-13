@@ -1,14 +1,15 @@
-#include "Argstate.h"
 #include <getopt.h>
 #include <cstdlib>
+#include <cassert>
+
+#include "Argstate.h"
 #include "Graph.h"
 
-Argstate::Argstate(const int argc, char * const argv[]) :
+Argstate::Argstate() :
 	verbose(false),
 	source(Graph::NO_NODE),
 	sink(Graph::NO_NODE)
 {
-	parseArgs(argc, argv);
 }
 
 Argstate::Argstate(const Argstate& argstate) :
@@ -29,17 +30,19 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 		{"filename", required_argument, 0, 'f'},
 		{"source", required_argument, 0, 's'},
 		{"sink", required_argument, 0, 't'},
+		{"help", no_argument, &help, 1},
 		{0, 0, 0, 0}
 	};
 
 	int opt;
-	while ((opt = getopt_long(argc, argv, "vf:s:t:", long_options, &optionIndex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "vf:s:t:h", long_options, &optionIndex)) != -1) {
 		switch(opt) {
 			case 0:
 				break;
 
 			case '?':
 				sprintf(optBuf, "Unknown parameter '%c'", optopt);
+				showHelp(argc, argv);
 				throw ArgstateException(string(optBuf));
 
 			case 'f':
@@ -54,6 +57,14 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 			case 't':
 				sink = atoi(optarg);
 				break;
+
+			case 'v':
+				verbose = true;
+				break;
+
+			case 'h':
+				help = true;
+				break;
 		}
 	}
 
@@ -66,6 +77,18 @@ bool Argstate::isVerbose() const {
 	return (bool) verbose;
 }
 
+void Argstate::showHelp(int argc, char* const argv[], ostream& stream) const {
+	assert(argc > 0);
+
+	string program(argv[0]);
+	stream << "Usage: " << program << " -f FILENAME" << endl << endl
+		<< "Options:" << endl
+		<< "\t-v/--verbose\tTurn verbosity on" << endl
+		<< "\t-s/--source SOURCE source node, random if absent" << endl
+		<< "\t-t/--sink SINK sink node, random if absent" << endl
+		<< "\t-h/--help\tdisplay this message" << endl;
+}
+
 string Argstate::getFilename() const {
 	return filename;
 }
@@ -76,4 +99,8 @@ int Argstate::getSource() const {
 
 int Argstate::getSink() const {
 	return sink;
+}
+
+bool Argstate::isHelp() const {
+	return (bool) help;
 }

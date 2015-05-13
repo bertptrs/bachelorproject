@@ -7,19 +7,30 @@
 using namespace std;
 
 int main(int argc, char * argv[]) {
-	MPI::Init(argc, argv);
+	Argstate args;
 	try {
-		const Argstate args(argc, argv);
+		args.parseArgs(argc, argv);
+
+		if (args.isHelp()) {
+			args.showHelp(argc, argv);
+			return 0;
+		}
+
+		MPI::Init(argc, argv);
 		PushLift algo(args);
 
 		float flow = algo.flow();
 		cout << "Max flow is " << flow << endl;
 
+		MPI::Finalize();
+
+		return 0;
 	} catch (ArgstateException ex) {
 		cerr << ex.what() << endl;
-		MPI::Finalize();
+
+		args.showHelp(argc, argv, cerr);
 		return 2;
 	}
-	MPI::Finalize();
-	return 0;
+	
+	return 1; // How did I get here?
 }
