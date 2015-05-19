@@ -30,12 +30,13 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 		{"filename", required_argument, 0, 'f'},
 		{"source", required_argument, 0, 's'},
 		{"sink", required_argument, 0, 't'},
+		{"output", required_argument, 0, 'o'},
 		{"help", no_argument, &help, 1},
 		{0, 0, 0, 0}
 	};
 
 	int opt;
-	while ((opt = getopt_long(argc, argv, "vf:s:t:h", long_options, &optionIndex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "vf:s:t:o:h", long_options, &optionIndex)) != -1) {
 		switch(opt) {
 			case 0:
 				break;
@@ -60,6 +61,10 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 
 			case 'v':
 				verbose = true;
+				break;
+
+			case 'o':
+				output = string(optarg);
 				break;
 
 			case 'h':
@@ -103,4 +108,12 @@ int Argstate::getSink() const {
 
 bool Argstate::isHelp() const {
 	return (bool) help;
+}
+
+bool Argstate::shouldOutput() const {
+	return output != "";
+}
+
+string Argstate::getOutputFilename() const {
+	return output;
 }

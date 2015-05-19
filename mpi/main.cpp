@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "Argstate.h"
 #include "MPI.h"
@@ -20,7 +21,17 @@ int main(int argc, char * argv[]) {
 		PushLift algo(args);
 
 		float flow = algo.flow();
-		cout << "Max flow is " << flow << endl;
+
+		if (MPI::COMM_WORLD.Get_rank() == 0) {
+			cout << "Max flow is " << flow << endl;
+
+			if (args.shouldOutput()) {
+				ofstream output(args.getOutputFilename().c_str());
+				algo.writeFlow(output);
+			}
+		}
+
+
 
 		MPI::Finalize();
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <utility>
 #include <list>
+#include <iostream>
 
 #include "Graph.h"
 #include "Argstate.h"
@@ -41,6 +42,9 @@ class PushLift {
 
 		// Find the back edge for a given edge
 		pair<int, weight_t>& getEdge(int, int);
+		pair<int, weight_t>& getEdge(const pair<int, int>&);
+		const pair<int, weight_t>& getEdge(int, int) const;
+		const pair<int, weight_t>& getEdge(const pair<int, int>&) const;
 
 		void work(int node);
 		void run();
@@ -57,6 +61,8 @@ class PushLift {
 
 		weight_t flow();
 		weight_t flow(int source, int sink);
+
+		void writeFlow(ostream&) const;
 };
 
 #endif

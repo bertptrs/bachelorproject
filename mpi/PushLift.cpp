@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <exception>
 #include <iomanip>
+#include <set>
 
 #include "MPI.h"
 
@@ -232,6 +233,25 @@ pair<int, weight_t>& PushLift::getEdge(int from, int to) {
 	throw runtime_error("Back edge not found");
 }
 
+pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) {
+	return getEdge(conn.first, conn.second);
+}
+
+const pair<int, weight_t>& PushLift::getEdge(int from, int to) const {
+	for (auto& edge : edges[from]) {
+		if (edge.first == to) {
+			return edge;
+		}
+	}
+
+	assert(false && "Back edge not found");
+	throw runtime_error("Back edge not found");
+}
+
+const pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) const {
+	return getEdge(conn.first, conn.second);
+}
+
 int PushLift::activeNodes() const {
 	int active = 0;
 	for (const weight_t& delta : D) {
@@ -247,4 +267,39 @@ bool PushLift::shouldDebug() const {
 
 bool PushLift::isMaster() const {
 	return rank == 0;
+}
+
+/*
+ * Write a Matrix Market file with the final flow.
+ * Only edges with actual flow are displayed.
+ */
+void PushLift::writeFlow(ostream& target) const {
+	set<pair<pair<int, int>, weight_t>> flowingEdges;
+	
+	// Determine edges with flow
+	for (const auto& edge : graph.getEdges()) {
+		if (edge.first.first == edge.first.second) {
+			continue;
+		}
+		if (getEdge(edge.first).second < edge.second) {
+			// This edge has less capacity, so it has flow.
+			flowingEdges.insert(edge);
+		}
+	}
+
+	// Add the MTX header
+	target << "%%MatrixMarket matrix coordinate real general" << endl
+		<< "%-------------------------------------------------" << endl
+		<< "% Original file: " << args.getFilename() << endl
+		<< "%Max flow calculated from " << source << " to " << sink << endl
+		<< "%-------------------------------------------------" << endl;
+
+	// Write dimensions
+	target << graph.getMaxNode() << " " << graph.getMaxNode() << " " << flowingEdges.size() << endl;
+
+	for (const auto& edge : flowingEdges) {
+		weight_t localFlow = edge.second - getEdge(edge.first).second;
+		target << edge.first.first << " " << edge.first.second << " " << localFlow << endl;
+	}
+
 }

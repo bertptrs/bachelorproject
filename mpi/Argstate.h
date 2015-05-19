@@ -13,7 +13,7 @@ class Argstate {
 		string filename;
 		int source, sink;
 		int help;
-
+		string output;
 
 	public:
 		Argstate();
@@ -24,6 +24,8 @@ class Argstate {
 		string getFilename() const;
 		int getSource() const;
 		int getSink() const;
+		string getOutputFilename() const;
+		bool shouldOutput() const;
 		void showHelp(int, char* const[], ostream& stream = cout) const;
 
 		void parseArgs(const int argc, char* const[]); 
