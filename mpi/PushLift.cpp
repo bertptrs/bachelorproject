@@ -13,7 +13,9 @@
 #include "utility.h"
 
 PushLift::PushLift(const Argstate& args) :
-	args(args)
+	args(args),
+	rank(MPI::COMM_WORLD.Get_rank()),
+	worldSize(MPI::COMM_WORLD.Get_size())
 {
 	FileReader reader(args.getFilename());
 	graph = reader.read();
@@ -23,7 +25,9 @@ PushLift::PushLift(const Argstate& args) :
 
 PushLift::PushLift(const Argstate& args, const Graph& graph) :
 	args(args),
-	graph(graph)
+	graph(graph),
+	rank(MPI::COMM_WORLD.Get_rank()),
+	worldSize(MPI::COMM_WORLD.Get_size())
 {
 	init();
 }
@@ -33,8 +37,6 @@ void PushLift::init() {
 	random.seed(rd());
 
 	numNodes = graph.getNodes().size();
-	worldSize = MPI::COMM_WORLD.Get_size();
-	rank = MPI::COMM_WORLD.Get_rank();
 }
 
 int PushLift::randomNode() {
@@ -47,16 +49,24 @@ int PushLift::randomNode() {
 }
 
 weight_t PushLift::flow() {
-	int source = args.getSource();
-	int sink = args.getSink();
+	int locations[2];
+	int& source = locations[0];
+	int& sink = locations[1];
+	if (isMaster()) {
+		// Determine flow route.
+		source = args.getSource();
+		sink = args.getSink();
 
-	if (source == Graph::NO_NODE) {
-		source = randomNode();
-	}
+		if (source == Graph::NO_NODE) {
+			source = randomNode();
+		}
 
-	if (sink == Graph::NO_NODE) {
-		sink = randomNode();
+		if (sink == Graph::NO_NODE) {
+			sink = randomNode();
+		}
 	}
+	// Synchronize flow directions between workers
+	MPI::COMM_WORLD.Bcast(locations, 2, MPI::INT, 0);
 
 	return flow(source, sink);
 }
@@ -115,7 +125,7 @@ void PushLift::initAlgo() {
 		cerr << "Performed initial push." << endl;
 		cerr << "Calculating flow over " << graphEdges.size() << " edges." << endl;
 	}
-	
+
 }
 
 void PushLift::addEdge(const pair<int, int>& conn, weight_t weight) {
@@ -142,7 +152,7 @@ void PushLift::run() {
 		found = false;
 
 		// TODO: add communication here
-		
+
 		for (int i = startNode; i < (int) D.size(); i += increment) {
 			if (i == source || i == sink) {
 				// Never work on those
@@ -232,5 +242,9 @@ int PushLift::activeNodes() const {
 }
 
 bool PushLift::shouldDebug() const {
-	return args.isVerbose() && rank == 0;
+	return args.isVerbose() && isMaster();
+}
+
+bool PushLift::isMaster() const {
+	return rank == 0;
 }

@@ -26,7 +26,8 @@ class PushLift {
 										// Stored as an adjecency list with weights.
 
 		// MPI information
-		int rank, worldSize;
+		const int rank;
+		const int worldSize;
 
 		int randomNode();
 
@@ -48,6 +49,7 @@ class PushLift {
 		int activeNodes() const;
 
 		bool shouldDebug() const;
+		bool isMaster() const;
 
 	public:
 		PushLift(const Argstate& args);
