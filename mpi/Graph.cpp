@@ -1,16 +1,19 @@
 #include "Graph.h"
 #include <cassert>
+#include <algorithm>
 
 void Graph::clear() {
 	edges.clear();
 }
 
-void Graph::addEdge(pair<int, int> edge, float weight) {
+void Graph::addEdge(pair<int, int> edge, weight_t weight) {
 	assert(weight >= 0);
 	edges[edge] += weight;
+
+	maxNode = max({maxNode, edge.first, edge.second});
 }
 
-void Graph::addEdge(int source, int sink, float weight) {
+void Graph::addEdge(int source, int sink, weight_t weight) {
 	addEdge(make_pair(source, sink), weight);
 }
 
@@ -32,4 +35,8 @@ set<int> Graph::getNodes() const {
 	}
 
 	return result;
+}
+
+int Graph::getMaxNode() const {
+	return maxNode;
 }

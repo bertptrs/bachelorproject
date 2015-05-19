@@ -8,21 +8,24 @@
 
 using namespace std;
 
-typedef pair<pair<int, int>, float> Edge;
+typedef double weight_t;
+typedef pair<pair<int, int>, weight_t> Edge;
 
 class Graph {
 	private:
-		map<pair<int, int>, float> edges;
+		map<pair<int, int>, weight_t> edges;
+		int maxNode;
 
 	public:
 		static const int NO_NODE = -1; 
 
 		void clear();
-		void addEdge(int source, int sink, float weight);
-		void addEdge(pair<int, int> edge, float weight);
+		void addEdge(int source, int sink, weight_t weight);
+		void addEdge(pair<int, int> edge, weight_t weight);
 
 		vector<Edge> getEdges() const;
 		set<int> getNodes() const;
+		int getMaxNode() const;
 };
 
 #endif

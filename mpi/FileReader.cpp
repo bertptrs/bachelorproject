@@ -30,9 +30,9 @@ Graph FileReader::read() {
 
 	input >> M >> N >> L;
 
-	for (int i = 0; i < M; i++) {
+	for (int i = 0; i < L; i++) {
 		int m, n;
-		float c;
+		weight_t c;
 		input >> m >> n >> c;
 
 		graph.addEdge(m, n, c);
