@@ -4,7 +4,8 @@
 #include <algorithm>
 #include <exception>
 #include <iomanip>
-#include <set>
+#include <stdexcept>
+#include <cstdint>
 
 #include "MPI.h"
 
@@ -13,10 +14,44 @@
 
 #include "utility.h"
 
+const int PushLift::CHANNEL_LIFTS = 1;
+const int PushLift::CHANNEL_PUSHES = 2;
+
+static const weight_t EPSILON = 1e-20;
+
+using namespace MPI;
+
+/**
+ * Get a specific node from the datastructure.
+ *
+ * @param [const] edges An optionally const adjecency list
+ * @param from origin node number
+ * @param to destination node number
+ * @returns A [const] edge reference.
+ * @throws out_out_range if the node could not be found.
+ */
+template<typename VectorType>
+typename enable_if<is_same<vector<vector<pair<int, weight_t>>>,
+		 typename remove_const<VectorType>::type
+	>::value
+, decltype(*declval<VectorType>().begin()->begin())
+	>::type
+	edgeGet(VectorType& edges, int from, int to) {
+		auto& edgeList = edges[from];
+		const pair<int, weight_t> reference = make_pair(to, -numeric_limits<weight_t>::infinity());
+		auto it = lower_bound(edgeList.begin(), edgeList.end(), reference);
+
+		if (it == edges[from].end() || it->first != to) {
+			throw out_of_range("Back edge not found");
+		} else {
+			return *it;
+		}
+	}
+
 PushLift::PushLift(const Argstate& args) :
 	args(args),
-	rank(MPI::COMM_WORLD.Get_rank()),
-	worldSize(MPI::COMM_WORLD.Get_size())
+	rank(COMM_WORLD.Get_rank()),
+	worldSize(COMM_WORLD.Get_size())
 {
 	FileReader reader(args.getFilename());
 	graph = reader.read();
@@ -27,10 +62,16 @@ PushLift::PushLift(const Argstate& args) :
 PushLift::PushLift(const Argstate& args, const Graph& graph) :
 	args(args),
 	graph(graph),
-	rank(MPI::COMM_WORLD.Get_rank()),
-	worldSize(MPI::COMM_WORLD.Get_size())
+	rank(COMM_WORLD.Get_rank()),
+	worldSize(COMM_WORLD.Get_size())
 {
 	init();
+}
+
+PushLift::~PushLift() {
+	// Free the MPI types.
+	liftTypeMPI.Free();
+	pushTypeMPI.Free();
 }
 
 void PushLift::init() {
@@ -38,6 +79,18 @@ void PushLift::init() {
 	random.seed(rd());
 
 	numNodes = graph.getNodes().size();
+
+
+	// Allocate MPI datatypes
+	Aint extent, lb;
+	INT.Get_extent(lb, extent);
+	const int blockLengths[] = {2, 1};
+	const Aint offsets[] = {0, 2 * extent};
+	const Datatype types[] = {INT, DOUBLE_PRECISION};
+	pushTypeMPI = Datatype::Create_struct(2, blockLengths, offsets, types);
+	pushTypeMPI.Commit();
+	liftTypeMPI = INT.Create_contiguous(2);
+	liftTypeMPI.Commit();
 }
 
 int PushLift::randomNode() {
@@ -67,7 +120,7 @@ weight_t PushLift::flow() {
 		}
 	}
 	// Synchronize flow directions between workers
-	MPI::COMM_WORLD.Bcast(locations, 2, MPI::INT, 0);
+	COMM_WORLD.Bcast(locations, 2, INTEGER, 0);
 
 	return flow(source, sink);
 }
@@ -95,6 +148,7 @@ void PushLift::initAlgo() {
 	// Allocated too large, so that we do not need to worry about 1 indexing.
 	H = vector<int>(graph.getMaxNode() + 1, 0);
 	D = vector<weight_t>(graph.getMaxNode() + 1, 0);
+	adjecentWorkers = vector<set<int>>(graph.getMaxNode() + 1);
 
 	// Set height of the source
 	H[source] = graph.getMaxNode();
@@ -113,6 +167,22 @@ void PushLift::initAlgo() {
 		}
 	}
 
+	// Sort arrays edges, so that binary search is possible.
+	for (auto& edgeList : edges) {
+		sort(edgeList.begin(), edgeList.end());
+	}
+
+	// Determine adjecent workers for each node.
+	// This is used in the communication step.
+	for (int i = 0; i < (int) edges.size(); i += worldSize) {
+		for (const auto& edge : edges[i]) {
+			int worker = edge.first % worldSize;
+			if (worker != rank) {
+				adjecentWorkers[i].insert(worker);
+			}
+		}
+	}
+
 	// Perform saturating push
 	for (pair<int, weight_t>& edge : edges[source]) {
 		// Find reverse edge. This is annoying and O(N)
@@ -120,6 +190,9 @@ void PushLift::initAlgo() {
 		backEdge.second = edge.second;
 		D[edge.first] += edge.second;
 		edge.second = 0;
+		if (edge.first % worldSize == rank) {
+			queueNode(edge.first);
+		}
 	}
 
 	if (shouldDebug()) {
@@ -144,30 +217,26 @@ void PushLift::addEdge(const pair<int, int>& conn, weight_t weight) {
 }
 
 void PushLift::run() {
-	const int startNode = rank;
-	const int increment = worldSize;
-	int iter = 0;
+	uint64_t iter = 0;
 
-	bool found = true;
-	while (found) {
-		found = false;
+	while (true && !(worldSize == 1 && !hasQueuedNode())) { // Stopping condition for world size 1
 
-		// TODO: add communication here
-
-		for (int i = startNode; i < (int) D.size(); i += increment) {
-			if (i == source || i == sink) {
-				// Never work on those
-				continue;
+		if (hasQueuedNode()) {
+			int node = source;
+			while ((node == source || node == sink || D[node] == 0) && hasQueuedNode()) {
+				node = getQueuedNode();
 			}
 
-			if (D[i] > 0) {
-				work(i);
-				found = true;
-				break;
+			if (node != source && node != sink && D[node] > 0) {
+				work(node);
 			}
 		}
 
-		if (shouldDebug() && iter % (1 << 12) == 0) {
+		// Communication should happen
+		receivePush();
+		receiveLift();
+
+		if (shouldDebug() && iter % (1 << 18) == 0) {
 			// Print status update, is nice.
 			cerr << "Iteration " << iter << ": flow at sink: " << D[sink]
 				<< " (" << activeNodes() << " active)" << endl;
@@ -182,11 +251,13 @@ void PushLift::run() {
 
 // Perform an action on this specific node.
 void PushLift::work(int node) {
-	assert(worldSize == 1 && "Parallel implementation not yet supported.");
-
 	int minHeight = numeric_limits<int>::max();
 	int& height = H[node];
 	weight_t& excess = D[node];
+	if (excess < EPSILON) {
+		excess = 0;
+		return;
+	}
 
 	for (auto& edge : edges[node]) {
 		if (edge.second > 0) {
@@ -200,8 +271,15 @@ void PushLift::work(int node) {
 				backEdge.second += delta;
 				D[edge.first] += delta;
 				D[node] -= delta;
+				if (D[node] > 0) {
+					queueNode(node);
+				}
 
-				// TODO: communicate.
+				if (isMine(edge.first)) {
+					queueNode(edge.first);
+				} else {
+					sendPush(node, edge.first, delta);
+				}
 				return;
 			} else {
 				// Candidate for a lift operation
@@ -212,25 +290,23 @@ void PushLift::work(int node) {
 
 	// No push available, must lift.
 	if (minHeight != numeric_limits<int>::max()) {
+		int newHeight = minHeight + 1;
+		int delta = newHeight - height;
 		// Can perform a lift operation.
-		height = minHeight + 1;
+		height += delta;
+		queueNode(node);
 
-		// TODO: communicate.
+		sendLift(node, delta);
 	} else {
+		cerr << "ERROR STATE Node: " << node << " has no valid outbound edges!" << endl
+			<< D[node] << " " << H[node] << endl;
 		assert(false && "No operation applicable. Invalid state?");
 	}
 }
 
 // Find  an edge from "from" to "to". This operation is O(N).
 pair<int, weight_t>& PushLift::getEdge(int from, int to) {
-	for (auto& edge : edges[from]) {
-		if (edge.first == to) {
-			return edge;
-		}
-	}
-
-	assert(false && "Back edge not found");
-	throw runtime_error("Back edge not found");
+	return edgeGet(edges, from, to);
 }
 
 pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) {
@@ -238,14 +314,7 @@ pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) {
 }
 
 const pair<int, weight_t>& PushLift::getEdge(int from, int to) const {
-	for (auto& edge : edges[from]) {
-		if (edge.first == to) {
-			return edge;
-		}
-	}
-
-	assert(false && "Back edge not found");
-	throw runtime_error("Back edge not found");
+	return edgeGet(edges, from, to);
 }
 
 const pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) const {
@@ -253,12 +322,7 @@ const pair<int, weight_t>& PushLift::getEdge(const pair<int, int>& conn) const {
 }
 
 int PushLift::activeNodes() const {
-	int active = 0;
-	for (const weight_t& delta : D) {
-		if (delta > 0) active++;
-	}
-
-	return active;
+	return todo.size();
 }
 
 bool PushLift::shouldDebug() const {
@@ -275,7 +339,7 @@ bool PushLift::isMaster() const {
  */
 void PushLift::writeFlow(ostream& target) const {
 	set<pair<pair<int, int>, weight_t>> flowingEdges;
-	
+
 	// Determine edges with flow
 	for (const auto& edge : graph.getEdges()) {
 		if (edge.first.first == edge.first.second) {
@@ -291,7 +355,7 @@ void PushLift::writeFlow(ostream& target) const {
 	target << "%%MatrixMarket matrix coordinate real general" << endl
 		<< "%-------------------------------------------------" << endl
 		<< "% Original file: " << args.getFilename() << endl
-		<< "%Max flow calculated from " << source << " to " << sink << endl
+		<< "% Max flow calculated from " << source << " to " << sink << endl
 		<< "%-------------------------------------------------" << endl;
 
 	// Write dimensions
@@ -302,4 +366,84 @@ void PushLift::writeFlow(ostream& target) const {
 		target << edge.first.first << " " << edge.first.second << " " << localFlow << endl;
 	}
 
+}
+
+void PushLift::sendPush(int from, int to, weight_t delta) const {
+	assert(isMine(from) && !isMine(to) && "Should push from owned node to non owned.");
+	int worker = owner(to);
+	PushType push = {from, to, delta};
+
+	COMM_WORLD.Isend(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES); 
+
+}
+
+void PushLift::sendLift(int node, int amount) const {
+	assert(isMine(node) && "Should only lift nodes owned by this worker.");
+	int data[] = {node, amount};
+	for (int worker : adjecentWorkers[node]) {
+		COMM_WORLD.Isend(data, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
+	}
+}
+
+void PushLift::receivePush() {
+	Status status;
+	while (COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_PUSHES, status)) {
+		int count = status.Get_count(pushTypeMPI);
+		if (count > (int) pushBuffer.size()) {
+			pushBuffer.resize(count);
+		}
+
+		COMM_WORLD.Recv(pushBuffer.data(), count, pushTypeMPI, ANY_SOURCE, CHANNEL_PUSHES);
+		for (int i = 0; i < count; i++) {
+			const PushType& push = pushBuffer[i];
+			EdgeWeight& edge = getEdge(push.from, push.to);
+			EdgeWeight& backEdge = getEdge(push.to, push.from);
+			D[push.to] += push.amount;
+			D[push.from] -= push.amount;
+			edge.second -= push.amount;
+			backEdge.second += push.amount;
+
+			queueNode(push.to);
+		}
+
+		assert(count > 0 && "Need to import at least 1");
+	}
+}
+
+void PushLift::receiveLift() {
+	Status status;
+	while (COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_LIFTS, status)) {
+		int count = status.Get_count(liftTypeMPI);
+		if (count > (int) liftBuffer.size()) {
+			liftBuffer.resize(count);
+		}
+		COMM_WORLD.Recv(liftBuffer.data(), count, liftTypeMPI, ANY_SOURCE, CHANNEL_LIFTS);
+		for (int i = 0; i < count; i++) {
+			H[liftBuffer[i].node] += liftBuffer[i].delta;
+		}
+
+		assert(count > 0 && "Need to import at least 1");
+	}
+}
+
+void PushLift::queueNode(int node) {
+	todo.push(node);
+}
+
+bool PushLift::hasQueuedNode() const {
+	return !todo.empty();
+}
+
+int PushLift::getQueuedNode() {
+	int node = todo.front();
+	todo.pop();
+	return node;
+}
+
+int PushLift::owner(const int& node) const {
+	return node % worldSize;
+}
+
+bool PushLift::isMine(const int& node) const {
+	return owner(node) == rank;
 }

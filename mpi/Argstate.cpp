@@ -8,7 +8,8 @@
 Argstate::Argstate() :
 	verbose(false),
 	source(Graph::NO_NODE),
-	sink(Graph::NO_NODE)
+	sink(Graph::NO_NODE),
+	help(false)
 {
 }
 
@@ -16,7 +17,8 @@ Argstate::Argstate(const Argstate& argstate) :
 	verbose(argstate.verbose),
 	filename(argstate.filename),
 	source(argstate.source),
-	sink(argstate.sink)
+	sink(argstate.sink),
+	help(argstate.help)
 {
 }
 

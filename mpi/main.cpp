@@ -7,6 +7,21 @@
 
 using namespace std;
 
+void run(const Argstate& args) {
+	PushLift algo(args);
+
+	float flow = algo.flow();
+
+	if (MPI::COMM_WORLD.Get_rank() == 0) {
+		cout << "Max flow is " << flow << endl;
+
+		if (args.shouldOutput()) {
+			ofstream output(args.getOutputFilename().c_str());
+			algo.writeFlow(output);
+		}
+	}
+}
+
 int main(int argc, char * argv[]) {
 	Argstate args;
 	try {
@@ -18,20 +33,8 @@ int main(int argc, char * argv[]) {
 		}
 
 		MPI::Init(argc, argv);
-		PushLift algo(args);
 
-		float flow = algo.flow();
-
-		if (MPI::COMM_WORLD.Get_rank() == 0) {
-			cout << "Max flow is " << flow << endl;
-
-			if (args.shouldOutput()) {
-				ofstream output(args.getOutputFilename().c_str());
-				algo.writeFlow(output);
-			}
-		}
-
-
+		run(args);
 
 		MPI::Finalize();
 

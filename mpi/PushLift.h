@@ -6,14 +6,31 @@
 #include <utility>
 #include <list>
 #include <iostream>
+#include <queue>
 
 #include "Graph.h"
 #include "Argstate.h"
+#include <set>
 
 using namespace std;
 
 class PushLift {
 	private:
+		static const int CHANNEL_LIFTS;
+		static const int CHANNEL_PUSHES;
+
+		struct PushType {
+			int from, to;
+			weight_t amount;
+		};
+
+		struct LiftType {
+			int node;
+			int delta;
+		};
+
+		typedef pair<int, weight_t> EdgeWeight;
+
 		const Argstate args;
 		Graph graph;
 		mt19937 random;
@@ -23,12 +40,28 @@ class PushLift {
 		int source, sink;
 		vector<int> H; // Height of node
 		vector<weight_t> D; // Excess of node
-		vector<vector<pair<int, weight_t>>> edges; // Edges with remaining capacity.
+		vector<vector<EdgeWeight>> edges; // Edges with remaining capacity.
 										// Stored as an adjecency list with weights.
+
+		queue<int> todo; // Height and node number.
+
 
 		// MPI information
 		const int rank;
 		const int worldSize;
+		MPI::Datatype pushTypeMPI;
+		MPI::Datatype liftTypeMPI;
+		vector<PushType> pushBuffer;
+		vector<LiftType> liftBuffer;
+		vector<set<int>> adjecentWorkers;
+
+		// MPI helpers
+		void sendPush(int, int, weight_t) const;
+		void sendLift(int, int) const;
+		void receivePush();
+		void receiveLift();
+		inline bool isMine(const int& node) const;
+		inline int owner(const int& node) const;
 
 		int randomNode();
 
@@ -39,6 +72,11 @@ class PushLift {
 
 		// Add an edge to the internal datastructure.
 		void addEdge(const pair<int, int>& conn, weight_t weight);
+
+		// Queue an edge for the todo list.
+		void queueNode(int node);
+		bool hasQueuedNode() const;
+		int getQueuedNode();
 
 		// Find the back edge for a given edge
 		pair<int, weight_t>& getEdge(int, int);
@@ -58,6 +96,7 @@ class PushLift {
 	public:
 		PushLift(const Argstate& args);
 		PushLift(const Argstate& args, const Graph& graph);
+		~PushLift();
 
 		weight_t flow();
 		weight_t flow(int source, int sink);
