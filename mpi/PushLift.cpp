@@ -68,29 +68,11 @@ PushLift::PushLift(const Argstate& args, const Graph& graph) :
 	init();
 }
 
-PushLift::~PushLift() {
-	// Free the MPI types.
-	liftTypeMPI.Free();
-	pushTypeMPI.Free();
-}
-
 void PushLift::init() {
 	random_device rd;
 	random.seed(rd());
 
 	numNodes = graph.getNodes().size();
-
-
-	// Allocate MPI datatypes
-	Aint extent, lb;
-	INT.Get_extent(lb, extent);
-	const int blockLengths[] = {2, 1};
-	const Aint offsets[] = {0, 2 * extent};
-	const Datatype types[] = {INT, DOUBLE_PRECISION};
-	pushTypeMPI = Datatype::Create_struct(2, blockLengths, offsets, types);
-	pushTypeMPI.Commit();
-	liftTypeMPI = INT.Create_contiguous(2);
-	liftTypeMPI.Commit();
 }
 
 int PushLift::randomNode() {
@@ -265,21 +247,13 @@ void PushLift::work(int node) {
 
 			if (edgeHeight < height) {
 				// Can perform a push operation.
-				pair<int, weight_t>& backEdge = getEdge(edge.first, node);
 				weight_t delta = min(edge.second, excess);
-				edge.second -= delta;
-				backEdge.second += delta;
-				D[edge.first] += delta;
-				D[node] -= delta;
+				performPush(node, edge.first, delta);
 				if (D[node] > 0) {
 					queueNode(node);
 				}
 
-				if (isMine(edge.first)) {
-					queueNode(edge.first);
-				} else {
-					sendPush(node, edge.first, delta);
-				}
+				communicator.sendPush(node, edge.first, delta);
 				return;
 			} else {
 				// Candidate for a lift operation
@@ -296,7 +270,7 @@ void PushLift::work(int node) {
 		height += delta;
 		queueNode(node);
 
-		sendLift(node, delta);
+		communicator.sendLift(node, delta, adjecentWorkers[node]);
 	} else {
 		cerr << "ERROR STATE Node: " << node << " has no valid outbound edges!" << endl
 			<< D[node] << " " << H[node] << endl;
@@ -368,61 +342,17 @@ void PushLift::writeFlow(ostream& target) const {
 
 }
 
-void PushLift::sendPush(int from, int to, weight_t delta) const {
-	assert(isMine(from) && !isMine(to) && "Should push from owned node to non owned.");
-	int worker = owner(to);
-	PushType push = {from, to, delta};
-
-	COMM_WORLD.Isend(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES); 
-
-}
-
-void PushLift::sendLift(int node, int amount) const {
-	assert(isMine(node) && "Should only lift nodes owned by this worker.");
-	int data[] = {node, amount};
-	for (int worker : adjecentWorkers[node]) {
-		COMM_WORLD.Isend(data, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
-	}
-}
-
 void PushLift::receivePush() {
-	Status status;
-	while (COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_PUSHES, status)) {
-		int count = status.Get_count(pushTypeMPI);
-		if (count > (int) pushBuffer.size()) {
-			pushBuffer.resize(count);
-		}
-
-		COMM_WORLD.Recv(pushBuffer.data(), count, pushTypeMPI, ANY_SOURCE, CHANNEL_PUSHES);
-		for (int i = 0; i < count; i++) {
-			const PushType& push = pushBuffer[i];
-			EdgeWeight& edge = getEdge(push.from, push.to);
-			EdgeWeight& backEdge = getEdge(push.to, push.from);
-			D[push.to] += push.amount;
-			D[push.from] -= push.amount;
-			edge.second -= push.amount;
-			backEdge.second += push.amount;
-
-			queueNode(push.to);
-		}
-
-		assert(count > 0 && "Need to import at least 1");
+	while (communicator.hasPush()) {
+		PushType push = communicator.getPush();
+		performPush(push.from, push.to, push.amount);
 	}
 }
 
 void PushLift::receiveLift() {
-	Status status;
-	while (COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_LIFTS, status)) {
-		int count = status.Get_count(liftTypeMPI);
-		if (count > (int) liftBuffer.size()) {
-			liftBuffer.resize(count);
-		}
-		COMM_WORLD.Recv(liftBuffer.data(), count, liftTypeMPI, ANY_SOURCE, CHANNEL_LIFTS);
-		for (int i = 0; i < count; i++) {
-			H[liftBuffer[i].node] += liftBuffer[i].delta;
-		}
-
-		assert(count > 0 && "Need to import at least 1");
+	while (communicator.hasLift()) {
+		LiftType lift = communicator.getLift();
+		performLift(lift.node, lift.delta);
 	}
 }
 
@@ -440,10 +370,24 @@ int PushLift::getQueuedNode() {
 	return node;
 }
 
-int PushLift::owner(const int& node) const {
-	return node % worldSize;
+void PushLift::performPush(int from, int to, weight_t delta) {
+	auto& edge = getEdge(from, to);
+	auto& backEdge = getEdge(to, from);
+
+	D[to] += delta;
+	D[from] -= delta;
+
+	edge.second -= delta;
+	backEdge.second += delta;
+
+	if (communicator.mine(to)) {
+		queueNode(to);
+	}
 }
 
-bool PushLift::isMine(const int& node) const {
-	return owner(node) == rank;
+void PushLift::performLift(int node, int delta) {
+	H[node] += delta;
+	if (communicator.mine(node) && D[node] > 0) {
+		queueNode(node);
+	}
 }

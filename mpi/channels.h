@@ -1,0 +1,10 @@
+#ifndef CHANNELS_H
+#define CHANNELS_H
+
+enum CHANNEL {
+	CHANNEL_PUSHES,
+	CHANNEL_LIFTS,
+	CHANNEL_ACTIVESTATE,
+};
+
+#endif

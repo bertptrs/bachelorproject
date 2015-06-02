@@ -10,6 +10,7 @@
 
 #include "Graph.h"
 #include "Argstate.h"
+#include "MPICommunicator.h"
 #include <set>
 
 using namespace std;
@@ -18,16 +19,6 @@ class PushLift {
 	private:
 		static const int CHANNEL_LIFTS;
 		static const int CHANNEL_PUSHES;
-
-		struct PushType {
-			int from, to;
-			weight_t amount;
-		};
-
-		struct LiftType {
-			int node;
-			int delta;
-		};
 
 		typedef pair<int, weight_t> EdgeWeight;
 
@@ -49,19 +40,12 @@ class PushLift {
 		// MPI information
 		const int rank;
 		const int worldSize;
-		MPI::Datatype pushTypeMPI;
-		MPI::Datatype liftTypeMPI;
-		vector<PushType> pushBuffer;
-		vector<LiftType> liftBuffer;
 		vector<set<int>> adjecentWorkers;
+		MPICommunicator communicator;
 
 		// MPI helpers
-		void sendPush(int, int, weight_t) const;
-		void sendLift(int, int) const;
 		void receivePush();
 		void receiveLift();
-		inline bool isMine(const int& node) const;
-		inline int owner(const int& node) const;
 
 		int randomNode();
 
@@ -86,6 +70,8 @@ class PushLift {
 
 		void work(int node);
 		void run();
+		void performPush(int from, int to, weight_t delta);
+		void performLift(int node, int delta);
 
 		// Number of active nodes.
 		int activeNodes() const;
@@ -96,7 +82,6 @@ class PushLift {
 	public:
 		PushLift(const Argstate& args);
 		PushLift(const Argstate& args, const Graph& graph);
-		~PushLift();
 
 		weight_t flow();
 		weight_t flow(int source, int sink);

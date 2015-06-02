@@ -5,6 +5,7 @@ OBJECTS=main.o \
 		Argstate.o \
 		Graph.o \
 		FileReader.o \
+		MPICommunicator.o \
 		PushLift.o
 
 EXE=pushlift
