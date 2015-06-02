@@ -9,6 +9,7 @@
 #include <queue>
 
 #include "Graph.h"
+#include "ActiveState.h"
 #include "Argstate.h"
 #include "MPICommunicator.h"
 #include <set>
@@ -17,9 +18,6 @@ using namespace std;
 
 class PushLift {
 	private:
-		static const int CHANNEL_LIFTS;
-		static const int CHANNEL_PUSHES;
-
 		typedef pair<int, weight_t> EdgeWeight;
 
 		const Argstate args;
@@ -42,6 +40,9 @@ class PushLift {
 		const int worldSize;
 		vector<set<int>> adjecentWorkers;
 		MPICommunicator communicator;
+
+		// State checker: Whether or nor we are finished yet.
+		ActiveState activeState;
 
 		// MPI helpers
 		void receivePush();

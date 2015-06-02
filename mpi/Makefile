@@ -5,6 +5,7 @@ OBJECTS=main.o \
 		Argstate.o \
 		Graph.o \
 		FileReader.o \
+		ActiveState.o \
 		MPICommunicator.o \
 		PushLift.o
 

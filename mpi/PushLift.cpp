@@ -8,14 +8,12 @@
 #include <cstdint>
 
 #include "MPI.h"
+#include "channels.h"
 
 #include "PushLift.h"
 #include "FileReader.h"
 
 #include "utility.h"
-
-const int PushLift::CHANNEL_LIFTS = 1;
-const int PushLift::CHANNEL_PUSHES = 2;
 
 static const weight_t EPSILON = 1e-20;
 
@@ -158,9 +156,8 @@ void PushLift::initAlgo() {
 	// This is used in the communication step.
 	for (int i = 0; i < (int) edges.size(); i += worldSize) {
 		for (const auto& edge : edges[i]) {
-			int worker = edge.first % worldSize;
-			if (worker != rank) {
-				adjecentWorkers[i].insert(worker);
+			if (!communicator.mine(edge.first)) {
+				adjecentWorkers[i].insert(communicator.owner(edge.first));
 			}
 		}
 	}
@@ -172,8 +169,10 @@ void PushLift::initAlgo() {
 		backEdge.second = edge.second;
 		D[edge.first] += edge.second;
 		edge.second = 0;
-		if (edge.first % worldSize == rank) {
+		if (communicator.mine(edge.first)) {
 			queueNode(edge.first);
+		} else if(isMaster()) {
+			activeState.getChild(communicator.owner(edge.first));
 		}
 	}
 
@@ -201,7 +200,7 @@ void PushLift::addEdge(const pair<int, int>& conn, weight_t weight) {
 void PushLift::run() {
 	uint64_t iter = 0;
 
-	while (true && !(worldSize == 1 && !hasQueuedNode())) { // Stopping condition for world size 1
+	while (!todo.empty() || !activeState.attemptShutdown()) { // Stopping condition for world size 1
 
 		if (hasQueuedNode()) {
 			int node = source;
