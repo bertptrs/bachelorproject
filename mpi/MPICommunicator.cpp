@@ -12,10 +12,19 @@ PushType::PushType(int from, int to, weight_t delta) :
 {
 }
 
+ostream& operator<<(ostream& os, PushType& push)
+{
+	return os << "Push(" << push.from << ", " << push.to << ", " << push.amount << ")"; 
+}
+
 LiftType::LiftType(int node, int delta) :
 	node(node),
 	delta(delta)
 {
+}
+
+ostream& operator<<(ostream& os, LiftType& lift) {
+	return os << "Lift(" << lift.node << ", " << lift.delta << ")";
 }
 
 MPICommunicator::MPICommunicator() :
@@ -46,6 +55,10 @@ int MPICommunicator::owner(int node) const {
 
 bool MPICommunicator::mine(int node) const {
 	return owner(node) == rank;
+}
+
+bool MPICommunicator::isMaster() const {
+	return rank == 0;
 }
 
 bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
@@ -91,4 +104,8 @@ LiftType MPICommunicator::getLift() {
 	COMM_WORLD.Recv(&lift, 1, liftTypeMPI, ANY_SOURCE, CHANNEL_LIFTS);
 
 	return lift;
+}
+
+ostream& MPICommunicator::getDebugStream() const {
+	return cerr << "Worker " << rank << ":";
 }

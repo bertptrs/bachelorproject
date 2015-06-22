@@ -4,6 +4,7 @@
 #include <vector>
 #include "Graph.h"
 #include "MPI.h"
+#include <iostream>
 
 using namespace std;
 
@@ -15,6 +16,8 @@ struct PushType {
 	PushType(const PushType& push) = default;
 };
 
+ostream& operator<<(ostream& os, const PushType& push);
+
 struct LiftType {
 	int node;
 	int delta;
@@ -22,6 +25,8 @@ struct LiftType {
 	LiftType(int node = 0, int delta = 0);
 	LiftType(const LiftType& lift) = default;
 };
+
+ostream& operator<<(ostream& os, const LiftType& lift);
 
 class MPICommunicator {
 	private:
@@ -40,6 +45,7 @@ class MPICommunicator {
 
 		int owner(int node) const;
 		bool mine(int node) const;
+		bool isMaster() const;
 
 		bool sendPush(int from, int to, weight_t delta);
 		void sendLift(int node, int delta, const set<int>& adjecentNodes);
@@ -49,6 +55,8 @@ class MPICommunicator {
 		
 		bool hasLift() const;
 		LiftType getLift();
+
+		ostream& getDebugStream() const;
 
 };
 
