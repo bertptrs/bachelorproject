@@ -10,14 +10,16 @@ OBJECTS=main.o \
 		PushLift.o
 
 EXE=pushlift
+TEST=mpitest
 
-.PHONY: all clean test
+.PHONY: all clean
 
-all: $(EXE)
+all: $(EXE) $(TEST)
 
 clean:
 	$(RM) $(OBJECTS)
 	$(RM) $(EXE)
+	$(RM) $(TEST)
 
 $(EXE): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
