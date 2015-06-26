@@ -47,9 +47,7 @@ typename enable_if<is_same<vector<vector<pair<int, weight_t>>>,
 	}
 
 PushLift::PushLift(const Argstate& args) :
-	args(args),
-	rank(COMM_WORLD.Get_rank()),
-	worldSize(COMM_WORLD.Get_size())
+	args(args)
 {
 	FileReader reader(args.getFilename());
 	graph = reader.read();
@@ -59,9 +57,7 @@ PushLift::PushLift(const Argstate& args) :
 
 PushLift::PushLift(const Argstate& args, const Graph& graph) :
 	args(args),
-	graph(graph),
-	rank(COMM_WORLD.Get_rank()),
-	worldSize(COMM_WORLD.Get_size())
+	graph(graph)
 {
 	init();
 }
@@ -86,7 +82,7 @@ weight_t PushLift::flow() {
 	int locations[2];
 	int& source = locations[0];
 	int& sink = locations[1];
-	if (isMaster()) {
+	if (communicator.isMaster()) {
 		// Determine flow route.
 		source = args.getSource();
 		sink = args.getSink();
@@ -120,11 +116,6 @@ weight_t PushLift::flow(int sourceArg, int sinkArg) {
 }
 
 void PushLift::initAlgo() {
-
-	if (shouldDebug()) {
-		cerr << "MPI master calculating max from from " << source << " to " << sink << endl;
-		cerr << "MPI World size: " << worldSize << endl;
-	}
 	// Allocated too large, so that we do not need to worry about 1 indexing.
 	H = vector<int>(graph.getMaxNode() + 1, 0);
 	D = vector<weight_t>(graph.getMaxNode() + 1, 0);
@@ -154,7 +145,10 @@ void PushLift::initAlgo() {
 
 	// Determine adjecent workers for each node.
 	// This is used in the communication step.
-	for (int i = 0; i < (int) edges.size(); i += worldSize) {
+	for (int i = 0; i < (int) edges.size(); i ++) {
+		if (!communicator.mine(i)) {
+			continue;
+		}
 		for (const auto& edge : edges[i]) {
 			if (!communicator.mine(edge.first)) {
 				adjecentWorkers[i].insert(communicator.owner(edge.first));
@@ -162,23 +156,20 @@ void PushLift::initAlgo() {
 		}
 	}
 
-	// Perform saturating push
-	for (pair<int, weight_t>& edge : edges[source]) {
-		// Find reverse edge. This is annoying and O(N)
-		pair<int, weight_t>& backEdge = getEdge(edge.first, source);
-		backEdge.second = edge.second;
-		D[edge.first] += edge.second;
-		edge.second = 0;
-		if (communicator.mine(edge.first)) {
-			queueNode(edge.first);
-		} else if(isMaster()) {
-			activeState.getChild(communicator.owner(edge.first));
+	if (communicator.mine(source)) {
+		// Perform saturating push
+		if (shouldDebug()) {
+			communicator.getDebugStream() << "Performing initial push" << endl;
 		}
+		for (pair<int, weight_t>& edge : edges[source]) {
+			performPush(source, edge.first, edge.second);
+		}
+	} else if (shouldDebug()) {
+		communicator.getDebugStream() << "Listening for initial push." << endl;
 	}
 
 	if (shouldDebug()) {
-		cerr << "Performed initial push." << endl;
-		cerr << "Calculating flow over " << graphEdges.size() << " edges." << endl;
+		communicator.getDebugStream() << "Calculating flow over " << graphEdges.size() << " edges." << endl;
 	}
 
 }
@@ -200,7 +191,7 @@ void PushLift::addEdge(const pair<int, int>& conn, weight_t weight) {
 void PushLift::run() {
 	uint64_t iter = 0;
 
-	while (!todo.empty() || !activeState.attemptShutdown()) { // Stopping condition for world size 1
+	while (!todo.empty() || !communicator.canShutdown()) { // Stopping condition for world size 1
 
 		if (hasQueuedNode()) {
 			int node = source;
@@ -219,14 +210,14 @@ void PushLift::run() {
 
 		if (shouldDebug() && iter % (1 << 18) == 0) {
 			// Print status update, is nice.
-			cerr << "Iteration " << iter << ": flow at sink: " << D[sink]
+			communicator.getDebugStream() << "Iteration " << iter << ": flow at sink: " << D[sink]
 				<< " (" << activeNodes() << " active)" << endl;
 		}
 		iter++;
 	}
 
-	if (args.isVerbose()) {
-		cerr << endl << "Stopping thread " << rank << " after " << iter << " iterations." << endl;
+	if (shouldDebug()) {
+		communicator.getDebugStream() << "Shutting down." << endl;
 	}
 }
 
@@ -251,8 +242,6 @@ void PushLift::work(int node) {
 				if (D[node] > 0) {
 					queueNode(node);
 				}
-
-				communicator.sendPush(node, edge.first, delta);
 				return;
 			} else {
 				// Candidate for a lift operation
@@ -265,11 +254,7 @@ void PushLift::work(int node) {
 	if (minHeight != numeric_limits<int>::max()) {
 		int newHeight = minHeight + 1;
 		int delta = newHeight - height;
-		// Can perform a lift operation.
-		height += delta;
-		queueNode(node);
-
-		communicator.sendLift(node, delta, adjecentWorkers[node]);
+		performLift(node, delta);
 	} else {
 		cerr << "ERROR STATE Node: " << node << " has no valid outbound edges!" << endl
 			<< D[node] << " " << H[node] << endl;
@@ -299,12 +284,9 @@ int PushLift::activeNodes() const {
 }
 
 bool PushLift::shouldDebug() const {
-	return args.isVerbose() && isMaster();
+	return args.isVerbose();
 }
 
-bool PushLift::isMaster() const {
-	return rank == 0;
-}
 
 /*
  * Write a Matrix Market file with the final flow.
@@ -381,12 +363,19 @@ void PushLift::performPush(int from, int to, weight_t delta) {
 
 	if (communicator.mine(to)) {
 		queueNode(to);
+	} else {
+		communicator.sendPush(from, to, delta);
 	}
 }
 
 void PushLift::performLift(int node, int delta) {
 	H[node] += delta;
-	if (communicator.mine(node) && D[node] > 0) {
-		queueNode(node);
+	if (communicator.mine(node)) {
+		if (D[node] > 0) {
+			queueNode(node);
+		}
+	} else {
+		communicator.sendLift(node, delta, adjecentWorkers[node]);
 	}
+
 }

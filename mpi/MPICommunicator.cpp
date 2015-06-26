@@ -1,7 +1,6 @@
 #include <cassert>
 
 #include "MPICommunicator.h"
-#include "channels.h"
 
 using namespace MPI;
 
@@ -29,8 +28,13 @@ ostream& operator<<(ostream& os, LiftType& lift) {
 
 MPICommunicator::MPICommunicator() :
 	rank(COMM_WORLD.Get_rank()),
-	worldSize(COMM_WORLD.Get_size())
+	worldSize(COMM_WORLD.Get_size()),
+	counter(0),
+	color(WHITE),
+	hasSent(false)
 {
+	// Master has token initially
+	hasToken = isMaster();
 	// Allocate MPI datatypes
 	Aint extent, lb;
 	INT.Get_extent(lb, extent);
@@ -65,8 +69,10 @@ bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
 	if (!mine(to)) {
 		PushType push(from, to, delta);
 		int worker = owner(to);
+		counter++;
 
 		COMM_WORLD.Isend(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES);
+		getDebugStream() << "Sending " << push << endl;
 		return true;
 	} else {
 		return false;
@@ -75,37 +81,146 @@ bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
 
 void MPICommunicator::sendLift(int node, int delta, const set<int>& adjecentNodes) {
 	LiftType lift(node, delta);
+	getDebugStream() << "Sending " << lift << endl;
 	for (int worker : adjecentNodes) {
+		counter++;
 		COMM_WORLD.Isend(&lift, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
 	}
 }
 
-bool MPICommunicator::hasPush() const {
-	return COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_PUSHES);
+bool MPICommunicator::hasPush() {
+	receiveMessages();
+	return !pushes.empty();
 }
 
 PushType MPICommunicator::getPush() {
 	assert(hasPush() && "Should have a push available");
 	
-	PushType push;
-	COMM_WORLD.Recv(&push, 1, pushTypeMPI, ANY_SOURCE, CHANNEL_PUSHES);
+	PushType push = pushes.front();
+	pushes.pop();
 
 	return push;
 }
 
-bool MPICommunicator::hasLift() const {
-	return COMM_WORLD.Iprobe(ANY_SOURCE, CHANNEL_LIFTS);
+bool MPICommunicator::hasLift() {
+	receiveMessages();
+	return !lifts.empty();
 }
 
 LiftType MPICommunicator::getLift() {
 	assert(hasLift() && "Should have lift available");
 
-	LiftType lift;
-	COMM_WORLD.Recv(&lift, 1, liftTypeMPI, ANY_SOURCE, CHANNEL_LIFTS);
+	LiftType lift = lifts.front();
+	lifts.pop();
 
 	return lift;
 }
 
 ostream& MPICommunicator::getDebugStream() const {
-	return cerr << "Worker " << rank << ":";
+	return cerr << "Worker " << rank << ": ";
+}
+
+void MPICommunicator::receiveMessages() {
+	Status status;
+	while (COMM_WORLD.Iprobe(ANY_SOURCE, ANY_TAG, status)) {
+		switch (status.Get_tag()) {
+			case CHANNEL_PUSHES:
+				receive<PushType>(CHANNEL_PUSHES, pushTypeMPI, pushes);
+				break;
+
+			case CHANNEL_LIFTS:
+				receive<LiftType>(CHANNEL_LIFTS, liftTypeMPI, lifts);
+				break;
+
+			case CHANNEL_TOKEN:
+				assert(status.Get_source() == prevWorker());
+				receiveToken();
+				break;
+		}
+	}
+}
+
+void MPICommunicator::receiveToken() {
+	COMM_WORLD.Recv(token.data, 2, INT, prevWorker(), CHANNEL_TOKEN);
+
+	if (color == BLACK)  {
+		token.content.color = BLACK;
+		color = WHITE;
+	}
+
+	hasToken = true;
+	getDebugStream() << "Receieved token" << endl;
+}
+
+void MPICommunicator::sendToken() {
+	assert(hasToken);
+	token.content.value += counter;
+
+	if (isMaster()) {
+		token.content.color = WHITE;
+		token.content.value = 0;
+	}
+
+	COMM_WORLD.Isend(token.data, 2, INT, nextWorker(), CHANNEL_TOKEN);
+
+	hasToken = false;
+	hasSent = true;
+	getDebugStream() << "Sent token" << endl;
+}
+
+bool MPICommunicator::canShutdown() {
+	getDebugStream() << "Attempting to shut down." << endl;
+	while(true) {
+		if (hasToken) {
+			if (isMaster()) {
+				if (color == WHITE && token.content.color == WHITE && token.content.value == 0 && hasSent) {
+					// TODO: send terminating condition
+					getDebugStream() << "Noticed I should shut down." << endl;
+					return true;
+				}
+			}
+			sendToken();
+		}
+
+		if (!pushes.empty() || !lifts.empty()) {
+			return false;
+		}
+
+		// Stall until a new message is available
+		COMM_WORLD.Probe(ANY_SOURCE, ANY_TAG);
+		receiveMessages();
+	}
+
+}
+
+template<typename ReceivingObject>
+void MPICommunicator::receive(const int channel, const Datatype& datatype, queue<ReceivingObject>& destination) {
+	Status status;
+	COMM_WORLD.Iprobe(ANY_SOURCE, channel, status);
+	size_t count = status.Get_count(datatype);
+
+	if (!count) return;
+
+	counter -= count;
+	color = BLACK;
+
+	// Allocate a sufficient buffer for the results.
+	ReceivingObject* buffer = new ReceivingObject[count];
+
+	// Receive and queue the results
+	COMM_WORLD.Recv(buffer, count, datatype, status.Get_source(), channel);
+	for (size_t i = 0; i < count; i++) {
+		destination.push(buffer[i]);
+		getDebugStream() << "Received " << buffer[i] << endl;
+	}
+
+	delete buffer; // Dispose of the buffer.
+}
+
+int MPICommunicator::nextWorker() const {
+	return (rank + 1) % worldSize;
+}
+
+int MPICommunicator::prevWorker() const {
+	return (rank + worldSize - 1) % worldSize;
 }

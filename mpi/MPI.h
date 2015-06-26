@@ -5,7 +5,7 @@
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include "mpi.h"
+#include <mpi.h>
 
 // Re-enable warnings
 #pragma GCC diagnostic pop

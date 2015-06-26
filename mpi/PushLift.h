@@ -9,7 +9,6 @@
 #include <queue>
 
 #include "Graph.h"
-#include "ActiveState.h"
 #include "Argstate.h"
 #include "MPICommunicator.h"
 #include <set>
@@ -32,17 +31,11 @@ class PushLift {
 		vector<vector<EdgeWeight>> edges; // Edges with remaining capacity.
 										// Stored as an adjecency list with weights.
 
-		queue<int> todo; // Height and node number.
-
+		queue<int> todo;
 
 		// MPI information
-		const int rank;
-		const int worldSize;
 		vector<set<int>> adjecentWorkers;
 		MPICommunicator communicator;
-
-		// State checker: Whether or nor we are finished yet.
-		ActiveState activeState;
 
 		// MPI helpers
 		void receivePush();
@@ -78,7 +71,6 @@ class PushLift {
 		int activeNodes() const;
 
 		bool shouldDebug() const;
-		bool isMaster() const;
 
 	public:
 		PushLift(const Argstate& args);

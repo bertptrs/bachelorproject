@@ -5,6 +5,7 @@
 #include "Graph.h"
 #include "MPI.h"
 #include <iostream>
+#include <queue>
 
 using namespace std;
 
@@ -30,13 +31,53 @@ ostream& operator<<(ostream& os, const LiftType& lift);
 
 class MPICommunicator {
 	private:
+		enum CHANNELS {
+			CHANNEL_TOKEN,
+			CHANNEL_PUSHES,
+			CHANNEL_LIFTS
+		};
+		enum COLORS {
+			WHITE,
+			BLACK
+		};
+
 		const int rank;
 		const int worldSize;
 		MPI::Datatype pushTypeMPI;
 		MPI::Datatype liftTypeMPI;
+		// Used so that we can receive more than we put out.
+		// This also means that we can receive even when there is no query to receive.
+		queue<PushType> pushes;
+		queue<LiftType> lifts;
+
+		// Data for Safra's algorithm.
+		int counter;
+		int color;
+		bool hasToken;
+		bool hasSent;
+
+		// Ring worker identifiers
+		int nextWorker() const;
+		int prevWorker() const;
+
+		union {
+			int data[2];
+			struct {
+				int color;
+				int value;
+			} content;
+		} token;
 
 		void sendPushes();
 		void sendLifts();
+
+		// Actual communication methods
+		void receiveMessages();
+		void receiveToken();
+		template<typename ReceivingObject>
+			void receive(const int channel, const MPI::Datatype& dataType, queue<ReceivingObject>& destination);
+
+		void sendToken();
 
 	public:
 		MPICommunicator();
@@ -50,11 +91,13 @@ class MPICommunicator {
 		bool sendPush(int from, int to, weight_t delta);
 		void sendLift(int node, int delta, const set<int>& adjecentNodes);
 
-		bool hasPush() const;
+		bool hasPush();
 		PushType getPush();
 		
-		bool hasLift() const;
+		bool hasLift();
 		LiftType getLift();
+
+		bool canShutdown();
 
 		ostream& getDebugStream() const;
 
