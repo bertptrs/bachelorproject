@@ -168,9 +168,7 @@ void PushLift::initAlgo() {
 		communicator.getDebugStream() << "Listening for initial push." << endl;
 	}
 
-	if (shouldDebug()) {
-		communicator.getDebugStream() << "Calculating flow over " << graphEdges.size() << " edges." << endl;
-	}
+	communicator.getDebugStream() << "Calculating flow over " << graphEdges.size() << " edges." << endl;
 
 }
 

@@ -73,7 +73,6 @@ bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
 		counter++;
 
 		COMM_WORLD.Isend(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES);
-		getDebugStream() << "Sending " << push << endl;
 		return true;
 	} else {
 		return false;
@@ -82,7 +81,6 @@ bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
 
 void MPICommunicator::sendLift(int node, int delta, const set<int>& adjecentNodes) {
 	LiftType lift(node, delta);
-	getDebugStream() << "Sending " << lift << endl;
 	for (int worker : adjecentNodes) {
 		counter++;
 		COMM_WORLD.Isend(&lift, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
@@ -154,9 +152,6 @@ void MPICommunicator::receiveToken() {
 	}
 
 	hasToken = true;
-	getDebugStream() << "Receieved token of color "
-		<< (token.content.color == WHITE ? "white" : "black")
-		<< " and value " << token.content.value << endl;
 }
 
 void MPICommunicator::sendToken() {
@@ -172,20 +167,15 @@ void MPICommunicator::sendToken() {
 
 	hasToken = false;
 	hasSent = true;
-	getDebugStream() << "Sent token" << endl;
 }
 
 bool MPICommunicator::canShutdown() {
-	getDebugStream() << "Attempting to shut down." << endl;
 	while(!terminated) {
 		if (hasToken) {
 			if (isMaster() && hasSent) {
 				if (color == WHITE && token.content.color == WHITE && token.content.value + counter == 0) {
-					getDebugStream() << "Noticed I should shut down." << endl;
 					sendTermination();
 					return true;
-				} else {
-					getDebugStream() << "Could not terminate yet." << endl;
 				}
 			}
 			sendToken();
@@ -222,7 +212,6 @@ void MPICommunicator::receive(const int channel, const Datatype& datatype, queue
 	COMM_WORLD.Recv(buffer, count, datatype, status.Get_source(), channel);
 	for (size_t i = 0; i < count; i++) {
 		destination.push(buffer[i]);
-		getDebugStream() << "Received " << buffer[i] << endl;
 	}
 
 	delete buffer; // Dispose of the buffer.
