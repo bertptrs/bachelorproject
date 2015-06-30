@@ -112,6 +112,8 @@ weight_t PushLift::flow(int sourceArg, int sinkArg) {
 	initAlgo();
 	run();
 
+	COMM_WORLD.Bcast(&D[sink], 1, DOUBLE_PRECISION, communicator.owner(sink));
+
 	return D[sink];
 }
 
