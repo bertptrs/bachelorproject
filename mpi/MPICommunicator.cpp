@@ -13,7 +13,7 @@ PushType::PushType(int from, int to, weight_t delta) :
 
 ostream& operator<<(ostream& os, PushType& push)
 {
-	return os << "Push(" << push.from << ", " << push.to << ", " << push.amount << ")"; 
+	return os << "Push(" << push.from << ", " << push.to << ", " << push.amount << ")";
 }
 
 LiftType::LiftType(int node, int delta) :
@@ -31,7 +31,8 @@ MPICommunicator::MPICommunicator() :
 	worldSize(COMM_WORLD.Get_size()),
 	counter(0),
 	color(WHITE),
-	hasSent(false)
+	hasSent(false),
+	terminated(false)
 {
 	// Master has token initially
 	hasToken = isMaster();
@@ -95,7 +96,7 @@ bool MPICommunicator::hasPush() {
 
 PushType MPICommunicator::getPush() {
 	assert(hasPush() && "Should have a push available");
-	
+
 	PushType push = pushes.front();
 	pushes.pop();
 
@@ -136,6 +137,10 @@ void MPICommunicator::receiveMessages() {
 				assert(status.Get_source() == prevWorker());
 				receiveToken();
 				break;
+
+			case CHANNEL_TERMINATION:
+				receieveTerminationMessage();
+				break;
 		}
 	}
 }
@@ -149,7 +154,9 @@ void MPICommunicator::receiveToken() {
 	}
 
 	hasToken = true;
-	getDebugStream() << "Receieved token" << endl;
+	getDebugStream() << "Receieved token of color "
+		<< (token.content.color == WHITE ? "white" : "black")
+		<< " and value " << token.content.value << endl;
 }
 
 void MPICommunicator::sendToken() {
@@ -170,13 +177,15 @@ void MPICommunicator::sendToken() {
 
 bool MPICommunicator::canShutdown() {
 	getDebugStream() << "Attempting to shut down." << endl;
-	while(true) {
+	while(!terminated) {
 		if (hasToken) {
-			if (isMaster()) {
-				if (color == WHITE && token.content.color == WHITE && token.content.value == 0 && hasSent) {
-					// TODO: send terminating condition
+			if (isMaster() && hasSent) {
+				if (color == WHITE && token.content.color == WHITE && token.content.value + counter == 0) {
 					getDebugStream() << "Noticed I should shut down." << endl;
+					sendTermination();
 					return true;
+				} else {
+					getDebugStream() << "Could not terminate yet." << endl;
 				}
 			}
 			sendToken();
@@ -190,6 +199,8 @@ bool MPICommunicator::canShutdown() {
 		COMM_WORLD.Probe(ANY_SOURCE, ANY_TAG);
 		receiveMessages();
 	}
+
+	return true;
 
 }
 
@@ -223,4 +234,24 @@ int MPICommunicator::nextWorker() const {
 
 int MPICommunicator::prevWorker() const {
 	return (rank + worldSize - 1) % worldSize;
+}
+
+void MPICommunicator::sendTermination() {
+	bool signal = true;
+	for (int i = 0; i < worldSize; i++) {
+		if (i == rank) {
+			continue;
+		}
+
+		COMM_WORLD.Isend(&signal, 1, BOOL, i, CHANNEL_TERMINATION);
+	}
+	terminated = true;
+}
+
+void MPICommunicator::receieveTerminationMessage() {
+	bool signal;
+
+	COMM_WORLD.Recv(&signal, 1, BOOL, ANY_SOURCE, CHANNEL_TERMINATION);
+	assert(signal && "Signal should be true.");
+	terminated = true;
 }

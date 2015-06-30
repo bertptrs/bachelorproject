@@ -371,11 +371,10 @@ void PushLift::performPush(int from, int to, weight_t delta) {
 void PushLift::performLift(int node, int delta) {
 	H[node] += delta;
 	if (communicator.mine(node)) {
+		communicator.sendLift(node, delta, adjecentWorkers[node]);
+
 		if (D[node] > 0) {
 			queueNode(node);
 		}
-	} else {
-		communicator.sendLift(node, delta, adjecentWorkers[node]);
 	}
-
 }

@@ -34,7 +34,8 @@ class MPICommunicator {
 		enum CHANNELS {
 			CHANNEL_TOKEN,
 			CHANNEL_PUSHES,
-			CHANNEL_LIFTS
+			CHANNEL_LIFTS,
+			CHANNEL_TERMINATION
 		};
 		enum COLORS {
 			WHITE,
@@ -55,6 +56,7 @@ class MPICommunicator {
 		int color;
 		bool hasToken;
 		bool hasSent;
+		bool terminated;
 
 		// Ring worker identifiers
 		int nextWorker() const;
@@ -70,10 +72,12 @@ class MPICommunicator {
 
 		void sendPushes();
 		void sendLifts();
+		void sendTermination();
 
 		// Actual communication methods
 		void receiveMessages();
 		void receiveToken();
+		void receieveTerminationMessage();
 		template<typename ReceivingObject>
 			void receive(const int channel, const MPI::Datatype& dataType, queue<ReceivingObject>& destination);
 
@@ -93,7 +97,7 @@ class MPICommunicator {
 
 		bool hasPush();
 		PushType getPush();
-		
+
 		bool hasLift();
 		LiftType getLift();
 
