@@ -72,7 +72,7 @@ bool MPICommunicator::sendPush(int from, int to, weight_t delta) {
 		int worker = owner(to);
 		counter++;
 
-		COMM_WORLD.Isend(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES);
+		COMM_WORLD.Send(&push, 1, pushTypeMPI, worker, CHANNEL_PUSHES);
 		return true;
 	} else {
 		return false;
@@ -83,7 +83,7 @@ void MPICommunicator::sendLift(int node, int delta, const set<int>& adjecentNode
 	LiftType lift(node, delta);
 	for (int worker : adjecentNodes) {
 		counter++;
-		COMM_WORLD.Isend(&lift, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
+		COMM_WORLD.Send(&lift, 1, liftTypeMPI, worker, CHANNEL_LIFTS);
 	}
 }
 
@@ -163,7 +163,7 @@ void MPICommunicator::sendToken() {
 		token.content.value = 0;
 	}
 
-	COMM_WORLD.Isend(token.data, 2, INT, nextWorker(), CHANNEL_TOKEN);
+	COMM_WORLD.Send(token.data, 2, INT, nextWorker(), CHANNEL_TOKEN);
 
 	hasToken = false;
 	hasSent = true;
@@ -206,15 +206,13 @@ void MPICommunicator::receive(const int channel, const Datatype& datatype, queue
 	color = BLACK;
 
 	// Allocate a sufficient buffer for the results.
-	ReceivingObject* buffer = new ReceivingObject[count];
+	vector<ReceivingObject> buffer(count);
 
 	// Receive and queue the results
-	COMM_WORLD.Recv(buffer, count, datatype, status.Get_source(), channel);
+	COMM_WORLD.Recv(buffer.data(), count, datatype, status.Get_source(), channel);
 	for (size_t i = 0; i < count; i++) {
 		destination.push(buffer[i]);
 	}
-
-	delete buffer; // Dispose of the buffer.
 }
 
 int MPICommunicator::nextWorker() const {
@@ -232,7 +230,7 @@ void MPICommunicator::sendTermination() {
 			continue;
 		}
 
-		COMM_WORLD.Isend(&signal, 1, BOOL, i, CHANNEL_TERMINATION);
+		COMM_WORLD.Send(&signal, 1, BOOL, i, CHANNEL_TERMINATION);
 	}
 	terminated = true;
 }
