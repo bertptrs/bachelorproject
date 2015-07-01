@@ -170,8 +170,6 @@ void PushLift::initAlgo() {
 		communicator.getDebugStream() << "Listening for initial push." << endl;
 	}
 
-	communicator.getDebugStream() << "Calculating flow over " << graphEdges.size() << " edges." << endl;
-
 }
 
 void PushLift::addEdge(const pair<int, int>& conn, weight_t weight) {
