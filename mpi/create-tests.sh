@@ -11,7 +11,7 @@ WORKERCOUNTS=$(seq 1 $3)
 GRAPHFILE=$4
 
 TESTDIR=tests
-SUITENAME=${TESTDIR}/"run_$(date -Iseconds)"
+SUITENAME=${TESTDIR}/"run_$(date +"%Y%m%d-%H%M%S")"
 
 mkdir -p "$TESTDIR"
 
