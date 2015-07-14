@@ -19,9 +19,12 @@ _OBJS=$(patsubst %.cpp, %.o, $(notdir $(CPPFILES)))
 DEPS=$(patsubst %.o, $(DEPDIR)/%.depend, $(_OBJS))
 OBJS=$(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
-.PHONY: all clean run config report.pdf
+.PHONY: all clean run config report.pdf mpi
 
-all: test
+all: test mpi
+
+mpi:
+	$(MAKE) -C $@
 
 report/build/thesis.pdf: thesis.tex $(shell find report -name "*.tex" -or -name "*.bib") | $(dir $@)
 	latexmk -xelatex -cd $< -outdir=build -auxdir=build
@@ -34,6 +37,7 @@ clean:
 	$(RM) report.pdf
 	$(RM) $(DEPS)
 	$(RM) $(DIRS)
+	$(MAKE) -C mpi clean
 
 test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
