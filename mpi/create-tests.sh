@@ -21,6 +21,7 @@ for COUNT in $WORKERCOUNTS; do
 #!/bin/bash
 #$ -pe openmpi ${COUNT}
 #$ -l h_rt=0:15:00
+#$ -N PUSHLIFT_${COUNT}
 #$ -cwd
 
 APP=./pushlift
@@ -38,7 +39,7 @@ for host in \`uniq \$TMPDIR/machines\`; do
     echo \$host slots=\$ncores
 done > \$HOSTFILE
 nhosts=\`wc -l < \$HOSTFILE\`
-totcores=\`expr \$nhosts * $ncores\`
+totcores=\`expr \$nhosts \* \$ncores\`
 
 # Use regular ssh-based startup instead of OpenMPI/SGE native one
 unset PE_HOSTFILE
