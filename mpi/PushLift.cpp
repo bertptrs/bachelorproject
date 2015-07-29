@@ -109,6 +109,11 @@ weight_t PushLift::flow(int sourceArg, int sinkArg) {
 	assert(sink >= 0);
 	assert(source != sink);
 
+	if (args.isVerbose() && communicator.isMaster()) {
+		communicator.getDebugStream() << "Calculating max flow from "
+			<< source << " to " << sink << endl;
+	}
+
 	initAlgo();
 	run();
 
