@@ -1,0 +1,12 @@
+\chapter{Experiments}
+
+For these experiments, we used the Cage11 dataset from the The University of Florida Sparse Matrix Collection and repeatedly checked a certain route.% TODO: this probably requires a citation
+This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied.
+
+As our platform was the DAS 4, we could vary the number of workers that would participate in the algorithm. Using this, we run the algorithm over the same route various times and averaged the results. As we can see in \autoref{fig:speedup_cage11}, there is pretty much no effect with 1 to 8 workers, and a slight decrease after that. This is because in our setup, 8 nodes could run on the same actual system. After that, there was a slight overhead for communication between physical nodes.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{graphs/graph_cage11_26345_36017}
+  \caption{Relative speedup when running a specific route on the Cage11 dataset.}
+  \label{fig:speedup_cage11}
+\end{figure}

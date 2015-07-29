@@ -5,7 +5,7 @@ GRAPHS=graphs/graph_cage11_26345_36017.pdf
 .PHONY: all clean
 
 all: $(GRAPHS)
-	latexmk -xelatex thesis.tex -outdir=$(BUILDDIR) -auxdir=$(BUILDDIR)
+	latexmk -interaction=nonstopmode -xelatex thesis.tex -outdir=$(BUILDDIR) -auxdir=$(BUILDDIR)
 
 clean:
 	$(RM) $(wildcard $(BUILDDIR)/*)
