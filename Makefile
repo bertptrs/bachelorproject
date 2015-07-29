@@ -10,8 +10,7 @@ OBJDIR=bin
 DEPDIR=.deps
 
 DIRS=$(OBJDIR)\
-	 $(DEPDIR)\
-	 report/build
+	 $(DEPDIR)
 
 CPPFILES=$(wildcard src/*.cpp)
 
@@ -19,25 +18,25 @@ _OBJS=$(patsubst %.cpp, %.o, $(notdir $(CPPFILES)))
 DEPS=$(patsubst %.o, $(DEPDIR)/%.depend, $(_OBJS))
 OBJS=$(patsubst %, $(OBJDIR)/%, $(_OBJS))
 
-.PHONY: all clean run config report.pdf mpi
+.PHONY: all clean run config report mpi
 
-all: test mpi
+all: test mpi report
 
 mpi:
 	$(MAKE) -C $@
 
-report/build/thesis.pdf: thesis.tex $(shell find report -name "*.tex" -or -name "*.bib") | $(dir $@)
-	latexmk -xelatex -cd $< -outdir=build -auxdir=build
+report:
+	$(MAKE) -C $@
 
 $(DIRS):
 	$(MKDIR) $@
 
 clean:
 	$(RM) test
-	$(RM) report.pdf
 	$(RM) $(DEPS)
 	$(RM) $(DIRS)
 	$(MAKE) -C mpi clean
+	$(MAKE) -C report clean
 
 test: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
