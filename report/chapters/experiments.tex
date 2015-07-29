@@ -3,7 +3,15 @@
 For these experiments, we used the Cage11 dataset from the The University of Florida Sparse Matrix Collection and repeatedly checked a certain route.% TODO: this probably requires a citation
 This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied.
 
-As our platform was the DAS 4, we could vary the number of workers that would participate in the algorithm. Using this, we run the algorithm over the same route various times and averaged the results. As we can see in \autoref{fig:speedup_cage11}, there is pretty much no effect with 1 to 8 workers, and a slight decrease after that. This is because in our setup, 8 nodes could run on the same actual system. After that, there was a slight overhead for communication between physical nodes.
+As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
+The DAS scheduler is responsible for placing algorithms on nodes. To circumvent random results, we repeat each experiment 10 times.
+
+\section{Expectations}
+
+Graph algorithms generally do not parallellize well % TODO: Citation needed
+so we do not expect major speedups. Any speedups will be visible the most when we use 8 or less instances. This is because the overhead of MPI communication within one physical node is less than between different nodes. As such, a performance drop is to be expected when a second node is added.
+
+\section{Results}
 
 \begin{figure}
   \includegraphics[width=\textwidth]{graphs/graph_cage11_26345_36017}
