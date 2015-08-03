@@ -4,21 +4,23 @@
 #include "Argstate.h"
 #include "MPI.h"
 #include "PushLift.h"
+#include "PushLiftImpl1.h"
 #include "Timer.h"
+#include <exception>
 
 using namespace std;
 
 void run(const Argstate& args) {
-	PushLift algo(args);
+	PushLift* algo = new PushLiftImpl1(args);
 
-	float flow = algo.flow();
+	float flow = algo->flow();
 
 	if (MPI::COMM_WORLD.Get_rank() == 0) {
 		cout << "Max flow is " << flow << endl;
 
 		if (args.shouldOutput()) {
 			ofstream output(args.getOutputFilename().c_str());
-			algo.writeFlow(output);
+			algo->writeFlow(output);
 		}
 	}
 }

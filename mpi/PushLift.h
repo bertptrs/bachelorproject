@@ -15,9 +15,11 @@
 
 using namespace std;
 
+ostream& operator << (ostream&, const Edge&);
+
 class PushLift {
-	private:
-		typedef pair<int, weight_t> EdgeWeight;
+	protected:
+
 
 		const Argstate args;
 		Graph graph;
@@ -26,21 +28,13 @@ class PushLift {
 
 		// Flow information
 		int source, sink;
-		vector<int> H; // Height of node
-		vector<weight_t> D; // Excess of node
-		vector<vector<EdgeWeight>> edges; // Edges with remaining capacity.
-										// Stored as an adjecency list with weights.
-
 		queue<int> todo;
-
 		// MPI information
 		vector<set<int>> adjecentWorkers;
 		MPICommunicator communicator;
-
 		// MPI helpers
 		void receivePush();
 		void receiveLift();
-
 		int randomNode();
 
 		// General initializer. Called by all contructors.
@@ -48,19 +42,21 @@ class PushLift {
 		// Initialize the data for the algorithm.
 		void initAlgo();
 
-		// Add an edge to the internal datastructure.
-		void addEdge(const pair<int, int>& conn, weight_t weight);
+		// Methods to be implemented by instantiations, to use the current datastructure.
+		virtual void addEdge(const pair<int, int>& conn, weight_t weight) = 0;
+		virtual weight_t getExcess(const int& nodeNo) const = 0;
+		virtual void setExcess(const int& nodeNo, const weight_t& newWeight) = 0;
+		virtual int getHeight(const int& nodeNo) const = 0;
+		virtual void setHeight(const int& nodeNo, const int& newHeight) = 0;
+		virtual weight_t getCapacity(const int& from, const int& to) const = 0;
+		virtual void setCapacity(const int& from, const int& to, const weight_t& newCapacity) = 0;
+		virtual vector<int> getNeighbours(int node) const = 0;
+		virtual void initDataStructure(const int& maxNode, const int& numEdges) = 0; // Initialize the datastructure for given parameters.
 
 		// Queue an edge for the todo list.
 		void queueNode(int node);
 		bool hasQueuedNode() const;
 		int getQueuedNode();
-
-		// Find the back edge for a given edge
-		pair<int, weight_t>& getEdge(int, int);
-		pair<int, weight_t>& getEdge(const pair<int, int>&);
-		const pair<int, weight_t>& getEdge(int, int) const;
-		const pair<int, weight_t>& getEdge(const pair<int, int>&) const;
 
 		void work(int node);
 		void run();
