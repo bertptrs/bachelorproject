@@ -3,6 +3,9 @@
 
 #include "PushLift.hpp"
 
+/**
+ * This implementation uses an adjecency list, indexed on the first node.
+ */
 class PushLiftImpl1 : public PushLift
 {
   private:

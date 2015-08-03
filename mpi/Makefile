@@ -7,6 +7,7 @@ OBJECTS=main.o \
 		FileReader.o \
 		MPICommunicator.o \
 		PushLiftImpl1.o \
+		PushLiftImpl2.o \
 		PushLift.o
 
 EXE=pushlift
