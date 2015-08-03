@@ -1,4 +1,4 @@
-#include "FileReader.h"
+#include "FileReader.hpp"
 #include <limits>
 
 FileReader::FileReader(const string& filename) :

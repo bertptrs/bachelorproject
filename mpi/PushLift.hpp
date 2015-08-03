@@ -8,9 +8,9 @@
 #include <iostream>
 #include <queue>
 
-#include "Graph.h"
-#include "Argstate.h"
-#include "MPICommunicator.h"
+#include "Graph.hpp"
+#include "Argstate.hpp"
+#include "MPICommunicator.hpp"
 #include <set>
 
 using namespace std;

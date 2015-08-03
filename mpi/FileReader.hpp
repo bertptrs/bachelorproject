@@ -2,7 +2,7 @@
 #define FILEREADER_H
 
 #include <exception>
-#include "Graph.h"
+#include "Graph.hpp"
 #include <fstream>
 
 using namespace std;

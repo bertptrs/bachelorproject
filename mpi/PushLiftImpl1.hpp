@@ -1,7 +1,7 @@
 #ifndef PUSHLIFT_IMPL_1_H
 #define PUSHLIFT_IMPL_1_H
 
-#include "PushLift.h"
+#include "PushLift.hpp"
 
 class PushLiftImpl1 : public PushLift
 {

@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <cassert>
 
-#include "Argstate.h"
-#include "Graph.h"
+#include "Argstate.hpp"
+#include "Graph.hpp"
 
 Argstate::Argstate() :
 	verbose(false),

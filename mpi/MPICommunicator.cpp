@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "MPICommunicator.h"
+#include "MPICommunicator.hpp"
 
 using namespace MPI;
 

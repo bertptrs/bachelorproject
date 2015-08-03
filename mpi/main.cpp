@@ -1,11 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "Argstate.h"
-#include "MPI.h"
-#include "PushLift.h"
-#include "PushLiftImpl1.h"
-#include "Timer.h"
+#include "Argstate.hpp"
+#include "MPI.hpp"
+#include "PushLift.hpp"
+#include "PushLiftImpl1.hpp"
+#include "Timer.hpp"
 #include <exception>
 
 using namespace std;

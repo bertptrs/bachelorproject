@@ -1,5 +1,5 @@
 #include <iostream>
-#include "MPI.h"
+#include "MPI.hpp"
 
 using namespace std;
 

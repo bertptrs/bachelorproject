@@ -2,8 +2,8 @@
 #define MPICOMMUNICATOR_H
 
 #include <vector>
-#include "Graph.h"
-#include "MPI.h"
+#include "Graph.hpp"
+#include "MPI.hpp"
 #include <iostream>
 #include <queue>
 

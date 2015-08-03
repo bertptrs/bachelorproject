@@ -7,13 +7,13 @@
 #include <stdexcept>
 #include <cstdint>
 
-#include "MPI.h"
-#include "channels.h"
+#include "MPI.hpp"
+#include "channels.hpp"
 
-#include "PushLift.h"
-#include "FileReader.h"
+#include "PushLift.hpp"
+#include "FileReader.hpp"
 
-#include "utility.h"
+#include "utility.hpp"
 
 static const weight_t EPSILON = 1e-20;
 
