@@ -14,10 +14,10 @@ typedef pair<pair<int, int>, weight_t> Edge;
 class Graph {
 	private:
 		map<pair<int, int>, weight_t> edges;
-		int maxNode;
+		int maxNode = 0;
 
 	public:
-		static const int NO_NODE = -1; 
+		static const int NO_NODE = -1;
 
 		void clear();
 		void addEdge(int source, int sink, weight_t weight);

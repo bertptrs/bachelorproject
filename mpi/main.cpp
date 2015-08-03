@@ -13,6 +13,10 @@ using namespace std;
 void run(const Argstate& args) {
 	PushLift* algo = new PushLiftImpl1(args);
 
+	if (MPI::COMM_WORLD.Get_rank() == 0) {
+		cout << "Algorithm initialized." << endl;
+	}
+
 	float flow = algo->flow();
 
 	if (MPI::COMM_WORLD.Get_rank() == 0) {
