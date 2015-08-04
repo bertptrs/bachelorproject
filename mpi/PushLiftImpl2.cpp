@@ -3,7 +3,11 @@
 
 int PushLiftImpl2::getHeight(const int& nodeNo) const
 {
-  return nodeStates[nodeNo].first;
+  try {
+    return nodeStates.at(nodeNo).first;
+  } catch (out_of_range ex) {
+    return 0;
+  }
 }
 
 void PushLiftImpl2::setHeight(const int& nodeNo, const int& newHeight)
@@ -13,7 +17,11 @@ void PushLiftImpl2::setHeight(const int& nodeNo, const int& newHeight)
 
 weight_t PushLiftImpl2::getExcess(const int& nodeNo) const
 {
-  return nodeStates[nodeNo].second;
+  try {
+    return nodeStates.at(nodeNo).second;
+  } catch (out_of_range ex) {
+    return 0;
+  }
 }
 
 void PushLiftImpl2::setExcess(const int& nodeNo, const weight_t& newWeight)
@@ -21,10 +29,9 @@ void PushLiftImpl2::setExcess(const int& nodeNo, const weight_t& newWeight)
   nodeStates[nodeNo].second = newWeight;
 }
 
-void PushLiftImpl2::initDataStructure(const int& maxNode, const int&)
+void PushLiftImpl2::initDataStructure(const int&, const int&)
 {
-  const unsigned int requiredSize = maxNode + 1; // Slightly too large, for one-indexing.
-  nodeStates = vector<pair<int, weight_t>>(requiredSize);
+  // No initialization required, map will initialize when needed.
 }
 
 void PushLiftImpl2::addEdge(const pair<int, int>& conn, weight_t weight)

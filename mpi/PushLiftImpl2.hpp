@@ -16,7 +16,7 @@ class PushLiftImpl2 : public PushLift
 {
 private:
   map<int, map<int, weight_t>> edges;
-  vector<pair<int, weight_t>> nodeStates; // Heights and excesses.
+  map<int, pair<int, weight_t>> nodeStates; // Heights and excesses.
 
 protected:
   virtual void addEdge(const pair<int, int>& conn, weight_t weight);
