@@ -3,9 +3,9 @@
 #include <string>
 #include "Argstate.hpp"
 #include "MPI.hpp"
-#include "PushLift.hpp"
 #include "PushLiftImpl1.hpp"
 #include "PushLiftImpl2.hpp"
+#include "PushLiftImpl3.hpp"
 #include "Timer.hpp"
 #include <exception>
 
@@ -20,6 +20,10 @@ void run(const Argstate& args) {
 
 		case 2:
 			algo = new PushLiftImpl2(args);
+			break;
+
+		case 3:
+			algo = new PushLiftImpl3(args);
 			break;
 
 		default:
