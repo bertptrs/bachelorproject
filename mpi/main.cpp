@@ -5,13 +5,26 @@
 #include "MPI.hpp"
 #include "PushLift.hpp"
 #include "PushLiftImpl1.hpp"
+#include "PushLiftImpl2.hpp"
 #include "Timer.hpp"
 #include <exception>
 
 using namespace std;
 
 void run(const Argstate& args) {
-	PushLift* algo = new PushLiftImpl1(args);
+	PushLift* algo;
+	switch (args.getImplementation()) {
+		case 1:
+			algo = new PushLiftImpl1(args);
+			break;
+
+		case 2:
+			algo = new PushLiftImpl2(args);
+			break;
+
+		default:
+			throw runtime_error("No such algorithm implementation.");
+	}
 
 	if (MPI::COMM_WORLD.Get_rank() == 0) {
 		cout << "Algorithm initialized." << endl;
@@ -27,6 +40,8 @@ void run(const Argstate& args) {
 			algo->writeFlow(output);
 		}
 	}
+
+	delete algo;
 }
 
 template<typename Duration>

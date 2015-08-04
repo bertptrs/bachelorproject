@@ -14,11 +14,12 @@ class Argstate {
 		int source, sink;
 		int help;
 		string output;
+		int implementation;
 
 	public:
 		Argstate();
-		Argstate(const Argstate& argstate);
-		
+		Argstate(const Argstate& argstate) = default;
+
 		bool isVerbose() const;
 		bool isHelp() const;
 		string getFilename() const;
@@ -27,8 +28,9 @@ class Argstate {
 		string getOutputFilename() const;
 		bool shouldOutput() const;
 		void showHelp(int, char* const[], ostream& stream = cout) const;
+		int getImplementation() const;
 
-		void parseArgs(const int argc, char* const[]); 
+		void parseArgs(const int argc, char* const[]);
 };
 
 class ArgstateException : public runtime_error {

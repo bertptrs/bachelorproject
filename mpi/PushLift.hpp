@@ -71,6 +71,7 @@ class PushLift {
 	public:
 		PushLift(const Argstate& args);
 		PushLift(const Argstate& args, const Graph& graph);
+		virtual ~PushLift() = default;
 
 		weight_t flow();
 		weight_t flow(int source, int sink);

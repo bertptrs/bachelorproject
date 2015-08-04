@@ -9,16 +9,8 @@ Argstate::Argstate() :
 	verbose(false),
 	source(Graph::NO_NODE),
 	sink(Graph::NO_NODE),
-	help(false)
-{
-}
-
-Argstate::Argstate(const Argstate& argstate) :
-	verbose(argstate.verbose),
-	filename(argstate.filename),
-	source(argstate.source),
-	sink(argstate.sink),
-	help(argstate.help)
+	help(false),
+	implementation(1)
 {
 }
 
@@ -34,11 +26,12 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 		{"sink", required_argument, 0, 't'},
 		{"output", required_argument, 0, 'o'},
 		{"help", no_argument, &help, 1},
+		{"implementation", required_argument, 0, 'i'},
 		{0, 0, 0, 0}
 	};
 
 	int opt;
-	while ((opt = getopt_long(argc, argv, "vf:s:t:o:h", long_options, &optionIndex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "vf:s:t:o:hi:", long_options, &optionIndex)) != -1) {
 		switch(opt) {
 			case 0:
 				break;
@@ -71,6 +64,10 @@ void Argstate::parseArgs(const int argc, char * const argv[]) {
 
 			case 'h':
 				help = true;
+				break;
+
+			case 'i':
+				implementation = atoi(optarg);
 				break;
 		}
 	}
@@ -118,4 +115,8 @@ bool Argstate::shouldOutput() const {
 
 string Argstate::getOutputFilename() const {
 	return output;
+}
+
+int Argstate::getImplementation() const {
+	return implementation;
 }
