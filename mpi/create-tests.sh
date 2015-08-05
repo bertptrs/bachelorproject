@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -lt 4 ]]; then
-	echo "Usage: $0 source sink max_workers graphfile"
+	echo "Usage: $0 source sink max_workers graphfile [implementation]"
 	exit 1
 fi
 
@@ -9,6 +9,7 @@ SOURCE=$1
 SINK=$2
 WORKERCOUNTS=$(seq 1 $3)
 GRAPHFILE=$4
+IMPLEMENTATION=${5:-1}
 
 TESTDIR=tests
 SUITENAME=${TESTDIR}/"run_$(date +"%Y%m%d-%H%M%S")"
@@ -16,16 +17,16 @@ SUITENAME=${TESTDIR}/"run_$(date +"%Y%m%d-%H%M%S")"
 mkdir -p "$TESTDIR"
 
 for COUNT in $WORKERCOUNTS; do
-	filename="${SUITENAME}_${SOURCE}_${SINK}_${COUNT}_cores.sh"
+	filename="${SUITENAME}_IMPL${IMPLEMENTATION}_${SOURCE}_${SINK}_${COUNT}_cores.sh"
 	cat << EOF > "$filename"
 #!/bin/bash
 #$ -pe openmpi ${COUNT}
 #$ -l h_rt=0:15:00
-#$ -N PUSHLIFT_${SOURCE}_${SINK}_${COUNT}
+#$ -N PUSHLIFT_IMPL${IMPLEMENTATION}_${SOURCE}_${SINK}_${COUNT}
 #$ -cwd
 
 APP=./pushlift
-ARGS="-s ${SINK} -t ${SOURCE} -f ${GRAPHFILE}"
+ARGS="-s ${SINK} -t ${SOURCE} -f ${GRAPHFILE} -i ${IMPLEMENTATION}"
 
 # Get OpenMPI settings
 . /etc/bashrc
@@ -45,7 +46,7 @@ totcores=\`expr \$nhosts \* \$ncores\`
 unset PE_HOSTFILE
 PATH=/usr/bin:\$PATH
 
-echo "Running maxflow on ${COUNT} MPI workers from ${SOURCE} to ${SINK}."
+echo "Running maxflow on ${COUNT} MPI workers from ${SOURCE} to ${SINK} on implementation ${IMPLEMENTATION}."
 
 \$MPI_RUN -np \$totcores --hostfile \$HOSTFILE \$APP \$ARGS
 EOF
