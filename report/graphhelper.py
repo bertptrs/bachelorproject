@@ -14,13 +14,13 @@ def getData(currentFile):
     algoTime = float(re.findall("Algorithm finished after (\d+\.?\d*)s", contents)[0])
     initTime = float(re.findall("Initialization finshed after (\d+\.?\d*)s", contents)[0])
 
-    implementations = re.findall("on implemenatation (\d+)\.", contents)
+    implementations = re.findall("on implementation (\d+)\.", contents)
 
     if len(implementations) > 0:
-        implementation = implementations[0]
+        implementation = int(implementations[0])
     else:
         implementation = 1
 
-        currentFile.close()
+    currentFile.close()
 
-        return (ncores, initTime, algoTime, implementation)
+    return (ncores, initTime, algoTime, implementation)

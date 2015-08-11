@@ -1,6 +1,7 @@
 BUILDDIR=build
 
-GRAPHS=graphs/graph_cage11_26345_36017.pdf
+GRAPHS=graphs/graph_cage11_26345_36017.pdf\
+	graphs/graph_implementations.pdf
 
 DIRS=graphs
 
@@ -15,6 +16,9 @@ clean:
 
 graphs/graph_cage11_26345_36017.pdf: $(wildcard data/PUSHLIFT_26345_36017_*) | graphs
 	./generate-speedup-chart.py -o $@ $^
+
+graphs/graph_implementations.pdf: $(wildcard data/PUSHLIFT_IMPL*) | graphs
+	./generate-implementation-chart.py -o $@ $^
 
 $(DIRS):
 	mkdir $@
