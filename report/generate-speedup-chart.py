@@ -1,19 +1,7 @@
 #!/usr/bin/python
 
-import argparse
-import re
 import matplotlib.pyplot as plt
-
-
-def readValues(currentFile):
-	contents = currentFile.read()
-	ncores = int(re.findall("Running maxflow on (\d+) MPI", contents)[0])
-	algoTime = float(re.findall("Algorithm finished after (\d+\.?\d*)s", contents)[0])
-	initTime = float(re.findall("Initialization finshed after (\d+\.?\d*)s", contents)[0])
-
-	currentFile.close()
-
-	return (ncores, initTime, algoTime)
+import graphhelper
 
 def plot(timings):
 	avgs = []
@@ -34,15 +22,13 @@ def plot(timings):
 	plt.grid()
 
 def main():
-	parser = argparse.ArgumentParser()
-	parser.add_argument('files', type=argparse.FileType('r'), help="The data file to use.", nargs="+")
-	parser.add_argument('--output', '-o', type=argparse.FileType('w'), help="Optional: A data file to store the graph in.")
+	parser = graphhelper.getArgParser()
 	args = parser.parse_args()
 
 	timings = dict()
 
 	for current in args.files:
-		ncores, initTime, algoTime = readValues(current)
+		ncores, initTime, algoTime, implementation = graphhelper.getData(current)
 		if ncores not in timings:
 			timings[ncores] = []
 
