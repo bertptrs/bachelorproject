@@ -1,0 +1,6 @@
+Running maxflow on 7 MPI workers from 26345 to 35017 on implementation 2.
+Initialization finshed after 1.0623s
+Algorithm initialized.
+Max flow is 0.451525
+Algorithm finished after 3.17104s
+Finalization finished after 0.108047s
