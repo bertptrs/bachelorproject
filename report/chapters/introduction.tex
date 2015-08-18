@@ -2,7 +2,7 @@
 
 Graph algorithms are in the most commonly used algorithms in computer science. Most general real world problems can be solved by converting the problem to a graph problem and solving that using a known algorithm. As such, optimizations in graph algorithms are optimizations to various fields in computing.
 
-In this thesis, we attempt to optimize graph algorithms using the forelem language as described in\cite{Rietveld}. For this thesis, we have looked at the max flow min cut problem as an example graph problem.It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
+In this thesis, we attempt to optimize graph algorithms using the forelem language as described in\cite{AVersatileTupleBasedOptimizationFramework}. For this thesis, we have looked at the max flow min cut problem as an example graph problem.It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
 
 \begin{figure}[h]
 \centering
@@ -150,11 +150,11 @@ The algorithm starts by performing a satisfying push on the source node, which f
 
 \section{The forelem language}
 
-For this research, we will use the forelem framework \cite{Rietveld} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
+For this research, we will use the forelem framework \cite{AVersatileTupleBasedOptimizationFramework} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
 
 As an example, we take a set of tuples \texttt{A} with two values, \texttt{part1} and \texttt{part2}, and we want to calculate the sum of $\text{\texttt{part1}} \times \text{\texttt{part2}}$, then an algorithm could be expressed as in algorithm~\ref{algo:forelem-sum}. In this algorithm, \texttt{pA} notates the set of indices for the tuple set A, with no guarantees of ordering of any kind. All that is known is that a tuple can be queried with an index. This leaves a compiler free to choose a data structure which does not have a strict ordering, like a set, or a structure without random access, like a linked list.
 
-Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. The actual transformations can be found in chapter 9 sections 4 to 7 of \cite{Rietveld} but is out of the scope of this thesis.
+Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. The actual transformations can be found in chapter 9 sections 4 to 7 of \cite{AVersatileTupleBasedOptimizationFramework} but is out of the scope of this thesis.
 
 \begin{algorithm}
 \caption{\emph{forelem} algorithm for summing the products of a set of tuples}
