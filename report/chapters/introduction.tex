@@ -100,7 +100,7 @@ A new property that is used, is the height function $H(u)$, which holds the curr
 
 The algorithm has two operations. The \textsc{Push} operation pushes excess flow from a node $u$ to a connected node $v$. It is allowed only when $H(u) = H(v) + 1$. If no valid push is possible, a node must be relabeled with the \textsc{Relabel} operation. This method increases $H(u)$ to the minimum level so that a new push is allowed.
 
-The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm~\autoref{algo:push-relabel}.
+The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in algorithm \ref{algo:push-relabel}.
 
 \begin{algorithm}
 \caption{A pseudo-code implementation of the generic Push-Relabel algorithm}

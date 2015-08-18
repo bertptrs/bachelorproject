@@ -20,7 +20,9 @@ Nodes are distributed over workers, which can work on either one node or a set o
 
 To implement the above algorithm in forelem, we need to structure our data as sets of tuples. As the algorithm considers properties on edges, being the remaining capacity they have, and nodes, being their height and current excess flow.
 
-It then makes sense to consider two sets of tuples. One of edges $E$ containing tuples $(u, v, c)$ with the edge source, sink and remaining capacity, and one of nodes $V$ containing tuples $(u, h, e)$, node, height, and excess. The last has one record per $u$, and is (for integer $u$) probably better off being an array or a map. For the pureness of the implementation however, we will consider it a set of tuples. From this startpoint we will generate the implementation.
+It then makes sense to consider two sets of tuples. One of edges $E$ containing tuples $(u, v, c, f)$ with the edge source, sink, capacity, and current flow, and one of nodes $V$ containing tuples $(u, h, e)$, node, height, and excess. The last has one record per $u$, and is (for integer $u$) probably better off being an array or a map. In the following implementation, we will consider it as such.
+
+We use a capacity and a remaining capacity for the flow, so that we can combine $c(u, v)$ and $c(v, u)$ in one tuple, instead of 2. This allows the algorithm to be simpler.
 
 The global variables assumed to be present are:
 
@@ -36,10 +38,76 @@ The global variables assumed to be present are:
 
 \begin{lstlisting}[mathescape]
 // Initialization
+flowOut = 0;
 
 // Initialize each height as 0
-forelem (i; i $\in$ pV)
-	V[i].h = 0
+forelem (i; i $\in$ pV) {
+	V[i].h = 0;
+}
+
+V[source].h = $|V|$;
+
+// Perform the initial push
+forelem (i; i $\in$ pE.u[source]) {
+	V[e[i].v].e += e[i].c;
+	e[i].f = e.[i].c;
+}
+
+// While there still is an element with excess
+whilelem (i $\in$ pV : V[i].e $> 0$) {
+	if (V[i].u == sink) {
+		flowOut += V[i].e;
+		V[i].e = 0;
+		continue;
+	}
+
+	// Determine the smallest pushable edge
+	edge = null;
+	minHeight = V[i].h;
+	
+	// Consider original edges
+	forelem (j $\in$ pE.u[V[i].u]) {
+		if (E[j].f < E[j].c && V[E[j].v].h < minHeight) {
+			edge = j;
+			minHeight = V[E[j].v].h;
+		}
+	}
+	
+	// Consider backtracking
+	forelem (j in $\in$ pE.v[V[i].u]) {
+		if (E[j].f > 0 && V[E[j].v].h < minHeight) {
+			edge = j;
+			minHeight = V[E[j].u].h;
+		}
+	}
+	
+	if (edge != null) {
+		// Perform a push
+		if (E[edge].u == V[i].u) {
+			delta = min(V[i].e, E[edge].c - E[edge].f)
+			E[edge].f += delta
+		} else {
+			delta = min(V[i].e, E[edge].f)
+			E[edge].f -= delta
+		}
+		V[i].e -= delta;
+	} else {
+		// Need to lift, find a new height.
+		newHeight = $\infty$;
+		forelem (j in $\in$ pE.v[V[i].u]) {
+			if (E[j].f > 0) {
+				newHeight = min(newHeight, V[E[j].v].h)
+			}
+		}
+		forelem (j in $\in$ pE.u[V[i].u]) {
+			if (E[j].f < E[j].c) {
+				newHeight = min(newHeight, V[E[j].u].h)
+			}
+		}
+		
+		V[i].h = newHeight + 1;
+	}
+}
  
 \end{lstlisting}
 
