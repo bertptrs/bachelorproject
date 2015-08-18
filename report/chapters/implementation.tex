@@ -24,96 +24,20 @@ It then makes sense to consider two sets of tuples. One of edges $E$ containing 
 
 We use a capacity and a remaining capacity for the flow, so that we can combine $c(u, v)$ and $c(v, u)$ in one tuple, instead of 2. This allows the algorithm to be simpler.
 
-The global variables assumed to be present are:
+The finalized implementation for the Push-Lift algorithm can be found in Appendix \ref{app:pushlift}.
 
-\begin{itemize}
-	\item $source$ the source node
-	\item $sink$ the sink node
-	\item $V, E$ the sets of tuples described above.
-\end{itemize}
+\section{DAS-4 and MPI}
 
-\begin{algorithm}
-\caption{A \textit{forelem} implementation of the Push-Lift algorithm.}
-\label{algo:push-lift-forelem}
+We chose the DAS-4 as our experimentation platform. This means any parallelization would be done using MPI. This poses a slight challenge, as Hong's Push-Lift was previously engineered for and profiled on a shared memory system. MPI has no such thing, and instead relies on message passing for communication.
 
-\begin{lstlisting}[mathescape]
-// Initialization
-flowOut = 0;
+To work around this, we implement a solution in which each worker has knowledge of the updates that are relevant to that worker.
 
-// Initialize each height as 0
-forelem (i; i $\in$ pV) {
-	V[i].h = 0;
-}
+Firstly, we need to divide the work. This is done by modulo division, such that every worker has all nodes $u : u \% workerCount = workerNo$. Then, we need to know what information is important which nodes.
 
-V[source].h = $|V|$;
+For push operations, this is obvious, as both the endpoints of the edge being pushed over need to know what is happening. This means that we need pass at most one message, because at least one of the nodes is owned by the worker performing the operation. When a push operation is performed, a check is done to see if the destination has the same owner as the origin, and if not, a tuple $(u, v, \delta)$ is sent to communicate the push happening.
 
-// Perform the initial push
-forelem (i; i $\in$ pE.u[source]) {
-	V[e[i].v].e += e[i].c;
-	e[i].f = e.[i].c;
-}
+For lift operations, this is slightly more complicated. As any worker that could theoretically push to a given node needs to know that node's height, all information must be pushed there as well. To implement this, we precompute the set of neighbours for each node, and store those sets. When a lift operation is performed on $u$, all nodes $v : (u, v, c, f) \in E$ are sent the increment in height. This ensures that multiple consecutive lift operations do not interfere.
 
-// While there still is an element with excess
-whilelem (i $\in$ pV : V[i].e $> 0$) {
-	if (V[i].u == sink) {
-		flowOut += V[i].e;
-		V[i].e = 0;
-		continue;
-	}
+Finally, we need to ensure termination. In a shared memory implementation, one could regularly check the current excess at every node, and terminate if there are no more active nodes. Because we attempt to minimize communication, no single worker will necessarily know all excess flows, and more importantly, no single worker can be sure there are no messages in transit that will change this.
 
-	// Determine the smallest pushable edge
-	edge = null;
-	minHeight = V[i].h;
-	
-	// Consider original edges
-	forelem (j $\in$ pE.u[V[i].u]) {
-		if (E[j].f < E[j].c && V[E[j].v].h < minHeight) {
-			edge = j;
-			minHeight = V[E[j].v].h;
-		}
-	}
-	
-	// Consider backtracking
-	forelem (j in $\in$ pE.v[V[i].u]) {
-		if (E[j].f > 0 && V[E[j].v].h < minHeight) {
-			edge = j;
-			minHeight = V[E[j].u].h;
-		}
-	}
-	
-	if (edge != null) {
-		// Perform a push
-		if (E[edge].u == V[i].u) {
-			delta = min(V[i].e, E[edge].c - E[edge].f)
-			E[edge].f += delta
-		} else {
-			delta = min(V[i].e, E[edge].f)
-			E[edge].f -= delta
-		}
-		V[i].e -= delta;
-	} else {
-		// Need to lift, find a new height.
-		newHeight = $\infty$;
-		forelem (j in $\in$ pE.v[V[i].u]) {
-			if (E[j].f > 0) {
-				newHeight = min(newHeight, V[E[j].v].h)
-			}
-		}
-		forelem (j in $\in$ pE.u[V[i].u]) {
-			if (E[j].f < E[j].c) {
-				newHeight = min(newHeight, V[E[j].u].h)
-			}
-		}
-		
-		V[i].h = newHeight + 1;
-	}
-}
- 
-\end{lstlisting}
-
-\end{algorithm}
-
-
-\section{MPI}
-
-TODO
+To deal with this, we implement Safra's algorithm \cite{fokkink2013distributed}, sorting our workers in a ring.

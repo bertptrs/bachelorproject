@@ -1,0 +1,89 @@
+\chapter{\textit{forelem} implementation for Push-Lift}
+
+The following code listing show the forelem specification for Push-Lift used in the experiment of this thesis.
+
+The global variables assumed to be present are:
+
+\begin{itemize}
+	\item $source$ the source node
+	\item $sink$ the sink node
+	\item $V, E$ the sets of tuples described above.
+\end{itemize}
+
+After the algorithm complettes, \texttt{flowOut} contains the maximum flow from \texttt{source} to \texttt{sink}.
+
+\label{app:pushlift}
+\begin{lstlisting}[mathescape,numbers=left,xleftmargin=2em]
+// Initialization
+flowOut = 0;
+
+// Initialize each height as 0
+forelem (i; i $\in$ pV) {
+	V[i].h = 0;
+}
+
+V[source].h = $|V|$;
+
+// Perform the initial push
+forelem (i; i $\in$ pE.u[source]) {
+	V[e[i].v].e += e[i].c;
+	e[i].f = e.[i].c;
+}
+
+// While there still is an element with excess
+whilelem (i $\in$ pV : V[i].e $> 0$) {
+	if (V[i].u == sink) {
+		flowOut += V[i].e;
+		V[i].e = 0;
+		continue;
+	}
+
+	// Determine the smallest pushable edge
+	edge = null;
+	minHeight = V[i].h;
+	
+	// Consider original edges
+	forelem (j $\in$ pE.u[V[i].u]) {
+		if (E[j].f < E[j].c && V[E[j].v].h < minHeight) {
+			edge = j;
+			minHeight = V[E[j].v].h;
+		}
+	}
+	
+	// Consider backtracking
+	forelem (j in $\in$ pE.v[V[i].u]) {
+		if (E[j].f > 0 && V[E[j].v].h < minHeight) {
+			edge = j;
+			minHeight = V[E[j].u].h;
+		}
+	}
+	
+	if (edge != null) {
+		// Perform a push
+		if (E[edge].u == V[i].u) {
+			delta = min(V[i].e, E[edge].c - E[edge].f)
+			E[edge].f += delta
+		} else {
+			delta = min(V[i].e, E[edge].f)
+			E[edge].f -= delta
+		}
+		V[i].e -= delta;
+	} else {
+		// Need to lift, find a new height.
+		newHeight = $\infty$;
+		forelem (j in $\in$ pE.v[V[i].u]) {
+			if (E[j].f > 0) {
+				newHeight = min(newHeight, V[E[j].v].h)
+			}
+		}
+		forelem (j in $\in$ pE.u[V[i].u]) {
+			if (E[j].f < E[j].c) {
+				newHeight = min(newHeight, V[E[j].u].h)
+			}
+		}
+		
+		V[i].h = newHeight + 1;
+	}
+}
+ 
+\end{lstlisting}
