@@ -1,12 +1,50 @@
 \chapter{Implementation}
 
-\section{Definitions}
-
-TODO
-
 \section{Push-lift}
 
-TODO
+The algorithm we consider the most suitable for optimization, is the Push Lift algorithm by Bo Hong et al. This algorithm uses the same preflow mechanics as the Push-Relabel \cite{ANewApproachToTheMaxFlowProblem} but has a few slight differences.
+
+The algorithm considers a as a collection of nodes $V$ and a capacity function $c(u, v)$ indicating the remaining capacity from $u$ to $v$.
+
+Like the Push-Relabel algorithm, Push-Lift first establishes a preflow, in which some nodes have more incoming flow than outgoing flow. This is done by using each edge going out of a source to its full capacity.
+
+The Push-Lift algorithm also has a similar height function $H$. At the start of the algorithm, each node has a height of 0, except for source nodes. Those have $|V|$ as height.
+
+In order to construct a valid flow, the algorithm then looks at each active node  and attempts to \emph{push} some of the excess incoming flow to outgoing edges. A node $u$ must push to its lowest neighbour $v$ for which there is still capacity left in the connecting edge, and $H(u) > H(v)$. This is different from the Push-Relabel algorithm, where a push is only allowed from $u$ to $v$ when $H(u) = H(v) + 1$, with no further preference over which node to choose.
+
+If no such push is possible, the node must be lifted. A \emph{lift} operation changes the height of node $u$, such that $H(u) \gets min{H(v) | c(u, v) > 0} + 1$, that is, to the minimum of all neighbours of $u$ that have capacity in the edges plus $1$, so that in the next iteration, a push is possible.
+
+Nodes are distributed over workers, which can work on either one node or a set of nodes. The algorithm terminates when there are no longer nodes with more incoming flow than outgoing flow, bar the sink nodes. This algorithm can find the maximum flow in $O(|V|^2|E|)$ operations \cite{LockFreeMultithreadedMaxFlow}.
+
+\section{\textit{forelem} implementation}
+
+To implement the above algorithm in forelem, we need to structure our data as sets of tuples. As the algorithm considers properties on edges, being the remaining capacity they have, and nodes, being their height and current excess flow.
+
+It then makes sense to consider two sets of tuples. One of edges $E$ containing tuples $(u, v, c)$ with the edge source, sink and remaining capacity, and one of nodes $V$ containing tuples $(u, h, e)$, node, height, and excess. The last has one record per $u$, and is (for integer $u$) probably better off being an array or a map. For the pureness of the implementation however, we will consider it a set of tuples. From this startpoint we will generate the implementation.
+
+The global variables assumed to be present are:
+
+\begin{itemize}
+	\item $source$ the source node
+	\item $sink$ the sink node
+	\item $V, E$ the sets of tuples described above.
+\end{itemize}
+
+\begin{algorithm}
+\caption{A \textit{forelem} implementation of the Push-Lift algorithm.}
+\label{algo:push-lift-forelem}
+
+\begin{lstlisting}[mathescape]
+// Initialization
+
+// Initialize each height as 0
+forelem (i; i $\in$ pV)
+	V[i].h = 0
+ 
+\end{lstlisting}
+
+\end{algorithm}
+
 
 \section{MPI}
 
