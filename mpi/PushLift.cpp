@@ -221,18 +221,15 @@ void PushLift::work(int node) {
 		return;
 	}
 
+	int goodNeighbour = -1;
+	int goodHeight = height;
+
 	for (int neighbour : getNeighbours(node)) {
 		if (getCapacity(node, neighbour) > 0) {
 			const int edgeHeight = getHeight(neighbour);
 
-			if (edgeHeight < height) {
-				// Can perform a push operation.
-				weight_t delta = min(getCapacity(node, neighbour), excess);
-				performPush(node, neighbour, delta);
-				if (getExcess(node) > 0) {
-					queueNode(node);
-				}
-				return;
+			if (edgeHeight < goodHeight) {
+				goodNeighbour = neighbour;
 			} else {
 				// Candidate for a lift operation
 				minHeight = min(minHeight, edgeHeight);
@@ -241,14 +238,18 @@ void PushLift::work(int node) {
 	}
 
 	// No push available, must lift.
-	if (minHeight != numeric_limits<int>::max()) {
+	if (goodNeighbour != -1) {
+		// Can perform a push operation.
+		weight_t delta = min(getCapacity(node, goodNeighbour), excess);
+		performPush(node, goodNeighbour, delta);
+		if (getExcess(node) > 0) {
+			queueNode(node);
+		}
+	} else {
+		assert(minHeight != numeric_limits<int>::max());
 		int newHeight = minHeight + 1;
 		int delta = newHeight - height;
 		performLift(node, delta);
-	} else {
-		cerr << "ERROR STATE Node: " << node << " has no valid outbound edges!" << endl
-			<< getExcess(node) << " " << getHeight(node) << endl;
-		assert(false && "No operation applicable. Invalid state?");
 	}
 }
 
