@@ -1,8 +1,8 @@
 \chapter{Introduction}
 
-\section{The problem}
+Graph algorithms are in the most commonly used algorithms in computer science. Most general real world problems can be solved by converting the problem to a graph problem and solving that using a known algorithm. As such, optimizations in graph algorithms are optimizations to various fields in computing.
 
-The problem we intend to solve is the max flow min cut problem. It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
+In this thesis, we attempt to optimize graph algorithms using the forelem language as described in\cite{Rietveld}. For this thesis, we have looked at the max flow min cut problem as an example graph problem.It was first formulated in 1954 as a way of modelling Soviet railway flow\cite{HarrisRoss}. The problem asks what, given a graph $(V,E)$ in which every edge has a flow capacity $c$, is the maximum flow from a given source to a given sink. For example, the in the graph shown in figure~\ref{fig:simple-graph} has a maximum flow of 14, utilizing the capacities as shown.
 
 \begin{figure}[h]
 \centering
@@ -33,12 +33,19 @@ The problem we intend to solve is the max flow min cut problem. It was first for
 
 It should be noted that the flow configuration for the maximum flow is not necessarily unique, although in this example it is. The only requirement is that for each node (excluding the source and the sink) the incoming flow is equal to the outgoing flow.
 
+\section{Current solutions}
+
+It should be noted that the max flow problem is not an unsolved problem. There have been several implementations, with various time and memory complexities. Early algorithms used the augmenting paths\cite{LockFreeMultithreadedMaxFlow} and construct additional routes from sources to sinks, most notably the Ford Fulkerson algorithm (see section \ref{subsect:fordfulkerson}).
+
+Goldberg et al produced a different result by constructing a preflow instead of a valid flow\cite{ANewApproachToTheMaxFlowProblem}, and pushing as much flow from the source to the sink, see section \ref{subsect:pushrelabel}. This thesis will attempt to work with the Push Lift algorithm proposed by Bo Hong \cite{LockFreeMultithreadedMaxFlow}, which allows a lock free parallel execution of the algorithm.
+
 \subsection{Ford-Fulkerson algorithm}
+\label{subsect:fordfulkerson}
 
 The Ford-Fulkerson algorithm computes for a given directed graph of edges $(u, v, c)$ with $u$ and $v$ nodes and $c$ the capacity for the edge, the maximum ``flow'' from a given source $s$ to a sink $t$, given that the flow of an edge $e$ can never exceed its capacity. The algorithm assumes that
 
 \begin{itemize}
-\item there are no parallel edges, meaning that 
+\item there are no parallel edges, meaning that
 $$
 \forall e_1 (u_1, v_1, c_1), e_2(u_2, v_2, c_2): e_1 \neq e_2 \implies u_1 \neq u_2 \land v_1 \neq v_2
 $$, and
@@ -80,11 +87,12 @@ The algorithm works as follows. We define $f(u,v)$ and $c(u, v)$ as the flow and
 	\EndFor
 \EndWhile
 \State $maxflow \gets \sum\limits_{e : e.v = t} f(e.u, e.v)$
-	
+
 \end{algorithmic}
 \end{algorithm}
 
 \subsection{Push-Relabel algorithm}
+\label{subsect:pushrelabel}
 
 We define the set of nodes, $V$, and the set of edges $E$. Furthermore, we define the function $\Delta(u)$ which denotes the current excess flow at node $u$, and $F(u, v)$ and $C(u, v)$, which denote the current flow and the flow capacity from $u$ to $v$ respectively. Both start at $0$ if the edge does not exist.
 

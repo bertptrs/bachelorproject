@@ -1,10 +1,10 @@
 \chapter{Experiments}
 
 For these experiments, we used the Cage11 dataset from the The University of Florida Sparse Matrix Collection and repeatedly checked a certain route.% TODO: this probably requires a citation
-This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied.
+This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied. We compare multiple instantiations of the algorithm in terms of response timing.
 
 As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
-The DAS scheduler is responsible for placing algorithms on nodes. To circumvent random results, we repeat each experiment 10 times.
+The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 10 times.
 
 \section{Expectations}
 
@@ -13,8 +13,20 @@ so we do not expect major speedups. Any speedups will be visible the most when w
 
 \section{Results}
 
-\begin{figure}
+The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}. The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
+
+The does show that there are slight increases in speed when using either four or five MPI workers, but which indicates that some speedup is possible when the active nodes are more evenly spread. This can apply more strongly to cases where there are more active nodes at each point in time.
+
+\begin{figure}[t]
   \includegraphics[width=\textwidth]{graphs/graph_cage11_26345_36017}
   \caption{Relative speedup when running a specific route on the Cage11 dataset.}
   \label{fig:speedup_cage11}
+\end{figure}
+
+TODO: discussion on different implementations
+
+\begin{figure}[t]
+  \includegraphics[width=\textwidth]{graphs/graph_implementations}
+  \caption{Comparison of implementations by execution time.}
+  \label{fig:implmementations}
 \end{figure}
