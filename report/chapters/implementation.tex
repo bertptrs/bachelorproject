@@ -8,11 +8,18 @@ The algorithm considers a as a collection of nodes $V$ and a capacity function $
 
 Like the Push-Relabel algorithm, Push-Lift first establishes a preflow, in which some nodes have more incoming flow than outgoing flow. This is done by using each edge going out of a source to its full capacity.
 
-The Push-Lift algorithm also has a similar height function $H$. At the start of the algorithm, each node has a height of 0, except for source nodes. Those have $|V|$ as height.
+The Push-Lift algorithm also has a similar height function $H$. At the start of the algorithm, the height function is initialized as follows:
+
+$$
+H(u) \gets \begin{cases}
+	|V| & \text{if } u \text{ is a source} \\
+	0 & \text{otherwise}
+\end{cases}
+$$
 
 In order to construct a valid flow, the algorithm then looks at each active node  and attempts to \emph{push} some of the excess incoming flow to outgoing edges. A node $u$ must push to its lowest neighbour $v$ for which there is still capacity left in the connecting edge, and $H(u) > H(v)$. This is different from the Push-Relabel algorithm, where a push is only allowed from $u$ to $v$ when $H(u) = H(v) + 1$, with no further preference over which node to choose.
 
-If no such push is possible, the node must be lifted. A \emph{lift} operation changes the height of node $u$, such that $H(u) \gets min{H(v) | c(u, v) > 0} + 1$, that is, to the minimum of all neighbours of $u$ that have capacity in the edges plus $1$, so that in the next iteration, a push is possible.
+If no such push is possible, the node must be lifted. A \emph{lift} operation changes the height of node $u$, such that $H(u) \gets \min\{H(v) | c(u, v) > 0\} + 1$, that is, to the minimum of all neighbours of $u$ that have capacity in the edges plus $1$, so that in the next iteration, a push is possible.
 
 Nodes are distributed over workers, which can work on either one node or a set of nodes. The algorithm terminates when there are no longer nodes with more incoming flow than outgoing flow, bar the sink nodes. This algorithm can find the maximum flow in $O(|V|^2|E|)$ operations \cite{LockFreeMultithreadedMaxFlow}.
 
@@ -32,12 +39,18 @@ We chose the DAS-4 as our experimentation platform. This means any parallelizati
 
 To work around this, we implement a solution in which each worker has knowledge of the updates that are relevant to that worker.
 
-Firstly, we need to divide the work. This is done by modulo division, such that every worker has all nodes $u : u \% workerCount = workerNo$. Then, we need to know what information is important which nodes.
+Firstly, we need to divide the work. This is done by modulo division, such that every worker has all nodes $u : u \mod	 workerCount = workerNo$. Then, we need to know what information is important which nodes.
 
 For push operations, this is obvious, as both the endpoints of the edge being pushed over need to know what is happening. This means that we need pass at most one message, because at least one of the nodes is owned by the worker performing the operation. When a push operation is performed, a check is done to see if the destination has the same owner as the origin, and if not, a tuple $(u, v, \delta)$ is sent to communicate the push happening.
 
 For lift operations, this is slightly more complicated. As any worker that could theoretically push to a given node needs to know that node's height, all information must be pushed there as well. To implement this, we precompute the set of neighbours for each node, and store those sets. When a lift operation is performed on $u$, all nodes $v : (u, v, c, f) \in E$ are sent the increment in height. This ensures that multiple consecutive lift operations do not interfere.
 
-Finally, we need to ensure termination. In a shared memory implementation, one could regularly check the current excess at every node, and terminate if there are no more active nodes. Because we attempt to minimize communication, no single worker will necessarily know all excess flows, and more importantly, no single worker can be sure there are no messages in transit that will change this.
+Finally, we need to ensure termination. In a shared memory implementation, one could regularly check the current excess at every node, and terminate if there are no more active nodes. Because we attempt to minimize communication, no single worker will necessarily know all excess flows, and more importantly, no single worker can be sure there are no messages in transit that will change this. To deal with this, we implement Safra's algorithm.
 
-To deal with this, we implement Safra's algorithm \cite{fokkink2013distributed}, sorting our workers in a ring.
+\subsection{Safra's algorithm}
+
+Safra's algorithm\cite{fokkink2013distributed} works by repeatedly passing along the workers a token. This token consists of a \emph{color}, either black or white, and an integer \emph{counter}. The token initially resides with the initiator.
+
+
+
+
