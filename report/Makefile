@@ -14,7 +14,7 @@ clean:
 	$(RM) $(wildcard $(BUILDDIR)/*)
 	$(RM) $(wildcard graphs/*)
 
-graphs/graph_cage11_26345_36017.pdf: $(wildcard data/PUSHLIFT_26345_36017_*) | graphs
+graphs/graph_cage11_26345_36017.pdf: $(wildcard data/PUSHLIFT_IMPL1*) | graphs
 	./generate-speedup-chart.py -o $@ $^
 
 graphs/graph_implementations.pdf: $(wildcard data/PUSHLIFT_IMPL*) | graphs
