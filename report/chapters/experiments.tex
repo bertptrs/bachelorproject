@@ -4,7 +4,7 @@ For these experiments, we used the Cage11 dataset from the The University of Flo
 This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied. We compare multiple instantiations of the algorithm in terms of response timing.
 
 As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
-The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 10 times.
+The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 16 times.
 
 \section{Expectations}
 
@@ -13,20 +13,29 @@ so we do not expect major speedups. Any speedups will be visible the most when w
 
 \section{Results}
 
-The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
+After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time, and have excluded the time needed for the MPI system to initialize.
 
-The speed up graph does show a slight speedup when using two workers. 
+This is because the overhead of setting up the parallel system is very much platform dependent, and not related to the problem we try to solve. The MPI initialization can be reused as well without overhead, so the cost is negligible for real world scenarios.
 
-\begin{figure}[t]
+\subsection{Relative speed up}
+
+% Placed here so LaTeX will place it somewhat close to this section
+\begin{figure}
   \includegraphics[width=\textwidth]{graphs/graph_cage11_26345_36017}
   \caption{Relative speedup when running a specific route on the Cage11 dataset.}
   \label{fig:speedup_cage11}
 \end{figure}
 
-TODO: discussion on different implementations
+The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
 
-\begin{figure}[t]
+The speed up graph does show a slight speedup when using two workers instead of one, but this is negligible. What is interesting, is the speed up is not declining or increasing, but actually very constant. This is an indication that the overhead from communication is being compensated by the parallelism. This means we can improve this figure by using a more efficient way of communicating.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
+
+\subsection{Comparing implementations}
+
+\begin{figure}
   \includegraphics[width=\textwidth]{graphs/graph_implementations}
   \caption{Comparison of implementations by execution time.}
   \label{fig:implmementations}
 \end{figure}
+
+Even if parallel implementations do not provide a good result, we can still look at how different implementations compare. Graph \ref{fig:implmementations} shows that our first implementation is without exception the better one.

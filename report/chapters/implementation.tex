@@ -29,7 +29,7 @@ To implement the above algorithm in forelem, we need to structure our data as se
 
 It then makes sense to consider two sets of tuples. One of edges $E$ containing tuples $(u, v, c, f)$ with the edge source, sink, capacity, and current flow, and one of nodes $V$ containing tuples $(u, h, e)$, node, height, and excess. The last has one record per $u$, and is (for integer $u$) probably better off being an array or a map. In the following implementation, we will consider it as such.
 
-We use a capacity and a remaining capacity for the flow, so that we can combine $c(u, v)$ and $c(v, u)$ in one tuple, instead of 2. This allows the algorithm to be simpler.
+We use a capacity and a remaining capacity for the flow, so that we can combine $c(u, v)$ and $c(v, u)$ in one tuple, instead of 2. This allows the algorithm to be simpler. Also, this circumvents the limitation that it is very difficult in \forelem to work on one tuple, and then to modify another.\footnote{It should be noted however, that this is not impossible. Instead, you could make a \forelem loop that you know will only match a single tuple. This does add a lot of loops, with a lot of variations that will not be efficient.}
 
 The finalized implementation for the Push-Lift algorithm can be found in Appendix \ref{app:pushlift}.
 
