@@ -49,8 +49,12 @@ Finally, we need to ensure termination. In a shared memory implementation, one c
 
 \subsection{Safra's algorithm}
 
-Safra's algorithm\cite{fokkink2013distributed} works by repeatedly passing along the workers a token. This token consists of a \emph{color}, either black or white, and an integer \emph{counter}. The token initially resides with the initiator.
+Safra's algorithm\cite{fokkink2013distributed} works by repeatedly passing along the workers a token. It works by passing a token along the workers. The token is filled with a color, black or white, and a message counter. If the message counter indicates there are no messages in transit, and the color indicates there are no more active workers.
 
+This way, Safra's algorithm ensures that every node is inactive, and that there is no way a node could become active again. Its overhead is minimal, as the token is only passed when a node becomes inactive, so it does not interrupt execution when a worker is busy. After the entire algorithm is finished, the token is passed at most 2 times through every node.
 
+\section{Materializing implementations}
 
-
+Due to time constraints, it was not possible to create a program that could materialize the \emph{forelem} implementation of Push-Lift (see appendix \ref{app:pushlift}) into a compilable or runnable algorithm, as described in. %TODO reference
+Instead, we chose to materialize the algorithm by hand and implement some of the variations that a materializer may have produced. For the variations, we chose to vary the data structure in memory. This way, we constructed %TODO
+memory implementations.
