@@ -2,11 +2,9 @@
 
 \section{Push-lift}
 
-The algorithm we consider the most suitable for optimization, is the Push Lift algorithm by Bo Hong et al. This algorithm uses the same preflow mechanics as the Push-Relabel \cite{ANewApproachToTheMaxFlowProblem} but has a few slight differences.
+The algorithm we consider the most suitable for optimization, is the Push Lift algorithm by Bo Hong et al. This is because it can be executed in parallel as it was designed that way and because it requires no locking between workers during execution. It uses the same preflow mechanics as the Push-Relabel \cite{ANewApproachToTheMaxFlowProblem} but has a few slight differences.
 
-The algorithm considers a as a collection of nodes $V$ and a capacity function $c(u, v)$ indicating the remaining capacity from $u$ to $v$.
-
-Like the Push-Relabel algorithm, Push-Lift first establishes a preflow, in which some nodes have more incoming flow than outgoing flow. This is done by using each edge going out of a source to its full capacity.
+The algorithm considers a as a collection of nodes $V$ and a capacity function $c(u, v)$ indicating the remaining capacity from $u$ to $v$. Like the Push-Relabel algorithm, Push-Lift first establishes a preflow, in which some nodes have more incoming flow than outgoing flow. This is done by using each edge going out of a source to its full capacity.
 
 The Push-Lift algorithm also has a similar height function $H$. At the start of the algorithm, the height function is initialized as follows:
 
