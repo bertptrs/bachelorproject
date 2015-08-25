@@ -1,5 +1,11 @@
 \chapter{Conclusion}
 
+In section \ref{sec:forelem-pushlift}, we have discussed how to implement Push-Lift in the \forelem framework. In sections \ref{sec:das4} and \ref{sec:implementations} we discussed how we obtained executable programs for that implementation. And finally in chapter \ref{chp:experiments} we ran and benchmarked those implementations on various parallel configurations.
+
+In doing so, we found that even though there are differences between the implementations, they are nothing we could not haved said without doing the benchmarks, but rather by looking at the computational complexities it would have been obvious.
+
 \section{Future work}
 
-A lot of improvement can be done on materializing implementations for graph algorithms. A main concern in this 
+A lot of improvement can be done on materializing implementations for graph algorithms. When an automated materilization is used, more different implementations can be generated, which in turn feature trade offs instead of one solution being the best.
+
+Also, while the current implementation gains no speed up when executed in parallel, that does not mean that no speed up can be gained. A more efficient way of sharing data, for instance, by sending updates in batches rather than one by one, can improve the execution times significantly.

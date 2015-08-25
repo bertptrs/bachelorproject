@@ -24,6 +24,7 @@ If no such push is possible, the node must be lifted. A \emph{lift} operation ch
 Nodes are distributed over workers, which can work on either one node or a set of nodes. The algorithm terminates when there are no longer nodes with more incoming flow than outgoing flow, bar the sink nodes. This algorithm can find the maximum flow in $O(|V|^2|E|)$ operations \cite{LockFreeMultithreadedMaxFlow}.
 
 \section{\textit{forelem} implementation}
+\label{sec:forelem-pushlift}
 
 To implement the above algorithm in forelem, we need to structure our data as sets of tuples. As the algorithm considers properties on edges, being the remaining capacity they have, and nodes, being their height and current excess flow.
 
@@ -34,6 +35,7 @@ We use a capacity and a remaining capacity for the flow, so that we can combine 
 The finalized implementation for the Push-Lift algorithm can be found in Appendix \ref{app:pushlift}.
 
 \section{DAS-4 and MPI}
+\label{sec:das4}
 
 We chose the DAS-4 as our experimentation platform. This means any parallelization would be done using MPI. This poses a slight challenge, as Hong's Push-Lift was previously engineered for and profiled on a shared memory system. MPI has no such thing, and instead relies on message passing for communication.
 
@@ -48,13 +50,37 @@ For lift operations, this is slightly more complicated. As any worker that could
 Finally, we need to ensure termination. In a shared memory implementation, one could regularly check the current excess at every node, and terminate if there are no more active nodes. Because we attempt to minimize communication, no single worker will necessarily know all excess flows, and more importantly, no single worker can be sure there are no messages in transit that will change this. To deal with this, we implement Safra's algorithm.
 
 \subsection{Safra's algorithm}
+\label{sec:safras-agorithm}
 
 Safra's algorithm\cite{fokkink2013distributed} works by repeatedly passing along the workers a token. It works by passing a token along the workers. The token is filled with a color, black or white, and a message counter. If the message counter indicates there are no messages in transit, and the color indicates there are no more active workers.
 
 This way, Safra's algorithm ensures that every node is inactive, and that there is no way a node could become active again. Its overhead is minimal, as the token is only passed when a node becomes inactive, so it does not interrupt execution when a worker is busy. After the entire algorithm is finished, the token is passed at most 2 times through every node.
 
-\section{Materializing implementations}
+\section{Generating implementations}
+\label{sec:implementations}
 
-Due to time constraints, it was not possible to create a program that could materialize the \emph{forelem} implementation of Push-Lift (see appendix \ref{app:pushlift}) into a compilable or runnable algorithm, as described in. %TODO reference
+Due to time constraints, it was not possible to create a program that could materialize the \forelem implementation of Push-Lift (see appendix \ref{app:pushlift}) into a compilable or runnable algorithm, as described in. %TODO reference
 Instead, we chose to materialize the algorithm by hand and implement some of the variations that a materializer may have produced. For the variations, we chose to vary the data structure in memory. This way, we constructed %TODO
-memory implementations.
+memory implementations. These are illustrated as follows:
+
+\begin{enumerate}
+	\item The first implementation we constructed, can be seen as an adjecency list. Height and excess are stored in an array.
+	\item The second implementation we constructed uses a sparse array (implemented as \texttt{map}, backed by a red-black tree) as the data structure for the capacities.
+	\item Our final implementation was a naive one, with all edge stored a an array of tuples. It did not complete any of the test runs within the allowed time limit of 15 minutes \footnote{On the DAS-4, the job time limit is 15 minutes. Outside of office hours, exceptions can be made, but for the purpose of this thesis, this was not deemed necessary.} and will therefore be excluded from the rest of this thesis.
+\end{enumerate}
+
+This in itself provides us with some complexities for some operations associated with the algorithm. These complexities are shown in table \ref{tab:implementation-complexities}. Here, $|V|$ denotes the number of nodes, $|E|$ the number of edges, and $B$ the branching factor of the graph.
+
+\begin{table}
+\centering
+\begin{tabular}{l||l|l}
+
+	& Implementation 1 & Implementation 2 \\
+\hline
+Retrieve remaining capacity for edge & $O(B)$ & $O(\log |E|)$ \\
+Retrieve node excess / height & $O(1)$ & $O(\log |V|)$ \\
+Determine node neighbours & $O(B)$ & $O(B + \log |V|)$
+\end{tabular}
+\caption{Various complexities for the proposed implementations.}
+\label{tab:implementation-complexities}
+\end{table}
