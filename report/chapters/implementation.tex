@@ -73,13 +73,13 @@ This in itself provides us with some complexities for some operations associated
 
 \begin{table}
 \centering
-\begin{tabular}{l||l|l}
+\begin{tabular}{l||l|l|l}
 
-	& Implementation 1 & Implementation 2 \\
+	& Implementation 1 & Implementation 2 & Implementation 3 \\
 \hline
-Retrieve remaining capacity for edge & $O(B)$ & $O(\log |E|)$ \\
-Retrieve node excess / height & $O(1)$ & $O(\log |V|)$ \\
-Determine node neighbours & $O(B)$ & $O(B + \log |V|)$
+Retrieve remaining capacity for edge & $O(B)$ & $O(\log |E|)$ & $O(|E|)$\\
+Retrieve node excess / height & $O(1)$ & $O(\log |V|)$ & $O(1)$\\
+Determine node neighbours & $O(B)$ & $O(B + \log |V|)$ & $O(|E|)$
 \end{tabular}
 \caption{Various complexities for the proposed implementations.}
 \label{tab:implementation-complexities}
