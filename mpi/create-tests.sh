@@ -21,7 +21,6 @@ for COUNT in $WORKERCOUNTS; do
 	cat << EOF > "$filename"
 #!/bin/bash
 #$ -pe openmpi ${COUNT}
-#$ -l h_rt=0:15:00
 #$ -N PUSHLIFT_IMPL${IMPLEMENTATION}_${SOURCE}_${SINK}_${COUNT}
 #$ -cwd
 
