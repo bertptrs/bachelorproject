@@ -25,7 +25,7 @@ for COUNT in $WORKERCOUNTS; do
 #$ -cwd
 
 APP=./pushlift
-ARGS="-s ${SINK} -t ${SOURCE} -f ${GRAPHFILE} -i ${IMPLEMENTATION}"
+ARGS="-t ${SINK} -s ${SOURCE} -f ${GRAPHFILE} -i ${IMPLEMENTATION}"
 
 # Get OpenMPI settings
 . /etc/bashrc
