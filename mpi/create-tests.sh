@@ -22,6 +22,7 @@ for COUNT in $WORKERCOUNTS; do
 #!/bin/bash
 #$ -pe openmpi ${COUNT}
 #$ -N PUSHLIFT_IMPL${IMPLEMENTATION}_${SOURCE}_${SINK}_${COUNT}
+#$ -l h_rt=2:00:00
 #$ -cwd
 
 APP=./pushlift
