@@ -4,10 +4,10 @@
 toDelete=$(mktemp)
 
 # Remove all files that do not contain the max flow result.
-grep -v "Max flow is" -l $@ > "$toDelete"
+grep "Max flow is" -L $@ >> "$toDelete"
 
 # Remove all the files with a max flow of zero.
-grep "Max flow is 0\\\$" -l $@ > "$toDelete"
+grep "Max flow is 0\$" -l $@ >> "$toDelete"
 
 # Remove the files.
 sort -u "$toDelete" | xargs rm
