@@ -100,6 +100,7 @@ weight_t PushLift::flow() {
 			sink = randomNode();
 		}
 	}
+
 	// Synchronize flow directions between workers
 	COMM_WORLD.Bcast(locations, 2, INTEGER, 0);
 
@@ -115,7 +116,7 @@ weight_t PushLift::flow(int sourceArg, int sinkArg) {
 	assert(source != sink);
 
 	if (args.isVerbose() && communicator.isMaster()) {
-		communicator.getDebugStream() << "Calculating max flow from "
+		communicator.getOutputStream() << "Calculating max flow from "
 			<< source << " to " << sink << endl;
 	}
 

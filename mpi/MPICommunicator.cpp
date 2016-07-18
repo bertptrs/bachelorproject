@@ -116,7 +116,16 @@ LiftType MPICommunicator::getLift() {
 }
 
 ostream& MPICommunicator::getDebugStream() const {
-	return cerr << "Worker " << rank << ": ";
+	return getStreamWithPrefix(cerr);
+}
+
+ostream& MPICommunicator::getOutputStream() const {
+	return getStreamWithPrefix(cout);
+}
+
+ostream& MPICommunicator::getStreamWithPrefix(ostream& stream) const
+{
+	return stream << "Worker " << rank << ": ";
 }
 
 void MPICommunicator::receiveMessages() {

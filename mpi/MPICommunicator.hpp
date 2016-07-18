@@ -83,6 +83,8 @@ class MPICommunicator {
 
 		void sendToken();
 
+		ostream& getStreamWithPrefix(ostream&) const;
+
 	public:
 		MPICommunicator();
 		~MPICommunicator();
@@ -104,6 +106,7 @@ class MPICommunicator {
 		bool canShutdown();
 
 		ostream& getDebugStream() const;
+		ostream& getOutputStream() const;
 
 };
 
