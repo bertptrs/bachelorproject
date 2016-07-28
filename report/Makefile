@@ -1,5 +1,3 @@
-BUILDDIR=build
-
 GRAPHS=graphs/graph_cage11_26345_36017.pdf\
 	graphs/graph_implementations.pdf
 
@@ -8,10 +6,10 @@ DIRS=graphs
 .PHONY: all clean
 
 all: $(GRAPHS)
-	latexmk -interaction=nonstopmode -xelatex thesis.tex -outdir=$(BUILDDIR) -auxdir=$(BUILDDIR)
+	latexmk -interaction=nonstopmode -xelatex thesis.tex
 
 clean:
-	$(RM) $(wildcard $(BUILDDIR)/*)
+	latexmk -C
 	$(RM) $(wildcard graphs/*)
 
 graphs/graph_cage11_26345_36017.pdf: $(wildcard data/PUSHLIFT_IMPL1*) | graphs
