@@ -23,7 +23,7 @@ def main():
 
     timings = dict()
 
-    for current in args.files:
+    for current in graphhelper.getArchiveIterator(args.files):
         ncores, initTime, algoTime, implementation = graphhelper.getData(current)
         if ncores not in timings:
             timings[ncores] = []

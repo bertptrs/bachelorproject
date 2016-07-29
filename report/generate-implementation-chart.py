@@ -55,7 +55,7 @@ def main():
 
     args = parser.parse_args()
 
-    timings = getTimings(args.files)
+    timings = getTimings(graphhelper.getArchiveIterator(args.files))
     plot(timings)
 
     if args.output:
