@@ -10,8 +10,7 @@ def plot(timings):
 
     speedups = [avgs[0] / avg for avg in avgs]
 
-    plt.plot(coreList, speedups, label="Measured speedup")
-    plt.plot(coreList, coreList, label="Ideal speedup") # Plot the reference line
+    plt.semilogx(coreList, speedups, label="Measured speedup", basex=2)
     plt.xlabel("Number of MPI workers")
     plt.ylabel("Relative speedup")
     plt.legend(loc = "best", fancybox = True)
