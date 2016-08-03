@@ -1,11 +1,27 @@
 \chapter{Experiments}
 \label{chp:experiments}
 
-For these experiments, we used the Cage11 dataset from the The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} and repeatedly checked a certain route.
-This matrix represents a sparse, directed and weighted graph, so the algorithm could be applied. We compare multiple instantiations of the algorithm in terms of response timing.
+For these experiments, we used several graphs from theof Florida Sparse Matrix Collection \cite{FloridaSparseMatrix}  and measured the time it took to compute the max flow between a source and a sink. We considered sparse, directed and weighted graphs.
+
+For each graph, we searched for a combination of source/sink that took a reasonable time to compute with one worker instance and also had a non-zero final result. The resulting configurations can be found in \autoref{tab:data-overview}.
+
+\begin{table}
+	\centering
+
+	\begin{tabularx}{\textwidth}{l | X | l | l | l | l | l}
+		Name & Description & From & Nodes & Edges & Source & Sink \\
+		\hline
+		cage11 & DNA electrophoresis & \texttt{vanHeukelum/cage11} & 39082 & 559722 & ? & ? \\
+		cage15 & DNA electrophoresis & \texttt{vanHeukelum/cage15} & 5154859 & 99199551 & ? & ? \\
+		internet & Connectivity of internet routers & \texttt{Pajek/internet} & 124651 & 207214 & 94268 & 1046
+	\end{tabularx}
+	\caption{An overview of the data sets and configurations used.}
+	\label{tab:data-overview}
+\end{table}
 
 As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
-The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 16 times.
+The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 5 times. We vary the number of worker nodes in our experiment. Due to limitations of the platform, we can either run a multiple of 8 workers or less than eight workers. This is because DAS places 8 workers on a single physical platform.
+
 
 \section{Expectations}
 
