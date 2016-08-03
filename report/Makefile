@@ -1,4 +1,4 @@
-GRAPHS=graphs/graph_cage11_26345_36017.pdf\
+GRAPHS=graphs/graph_speedup.pdf \
 	graphs/graph_implementations.pdf
 
 DIRS=graphs
@@ -12,7 +12,7 @@ clean:
 	latexmk -C
 	$(RM) $(wildcard graphs/*)
 
-graphs/graph_cage11_26345_36017.pdf: data/cage11-impl1.tar.gz | graphs
+graphs/graph_speedup.pdf: $(wildcard data/*.tar.gz) | graphs
 	./generate-speedup-chart.py -o $@ $^
 
 graphs/graph_implementations.pdf: $(wildcard data/cage11-impl*.tar.gz) | graphs
