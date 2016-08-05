@@ -1,5 +1,6 @@
 GRAPHS=graphs/graph_speedup.pdf \
-	graphs/graph_implementations.pdf
+	   graphs/graph_implementations.pdf \
+	   graphs/graph_initialization.pdf
 
 DIRS=graphs
 
@@ -17,6 +18,9 @@ graphs/graph_speedup.pdf: $(wildcard data/*.tar.gz) | graphs
 
 graphs/graph_implementations.pdf: $(wildcard data/cage11-impl*.tar.gz) | graphs
 	./generate-implementation-chart.py -o $@ $^
+
+graphs/graph_initialization.pdf: $(wildcard data/*.tar.gz) | graphs
+	./generate-initialization-chart.py -o $@ $^
 
 $(DIRS):
 	mkdir $@
