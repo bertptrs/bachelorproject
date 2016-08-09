@@ -1,6 +1,5 @@
 \chapter{Experiments}
 \label{chp:experiments}
-
 For these experiments, we used several graphs from theof Florida Sparse Matrix Collection \cite{FloridaSparseMatrix}  and measured the time it took to compute the max flow between a source and a sink. We considered sparse, directed and weighted graphs.
 
 For each graph, we searched for a combination of source/sink that took a reasonable time to compute with one worker instance and also had a non-zero final result. The resulting configurations can be found in \autoref{tab:data-overview}.
@@ -24,28 +23,30 @@ The DAS scheduler is responsible for placing algorithms on nodes. To circumvent 
 
 
 \section{Expectations}
-
 Graph algorithms generally do not parallellize well % TODO: Citation needed
 so we do not expect major speedups. Any speedups will be visible the most when we use 8 or less instances. This is because the overhead of MPI communication within one physical node is less than between different nodes. As such, a performance drop is to be expected when a second node is added.
 
 \section{Results}
-
 After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time, and have excluded the time needed for the MPI system to initialize.
 
-This is because the overhead of setting up the parallel system is very much platform dependent, and not related to the problem we try to solve. The MPI initialization can be reused as well without overhead, so the cost is negligible for real world scenarios.
+This is because the overhead of setting up the parallel system is very much platform dependent, and not related to the problem we try to solve. The MPI initialization can be reused as well without overhead, so the cost is negligible for real world scenarios. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{graphs/graph_initialization}
+  \caption{Cost of initialization as a function of the number of workers.}
+  \label{fig:initialization_time}
+\end{figure}
 
 \subsection{Relative speed up}
+The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
 
-% Placed here so LaTeX will place it somewhat close to this section
+The speed up graph does show a slight speedup when using two workers instead of one, but this is negligible. What is interesting, is the speed up is not declining or increasing, but actually very constant. This is an indication that the overhead from communication is being compensated by the parallelism. This means we can improve this figure by using a more efficient way of communicating.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
+
 \begin{figure}
   \includegraphics[width=\textwidth]{graphs/graph_speedup}
   \caption{Relative speedup when running a specific route on the datasets.}
   \label{fig:speedup_cage11}
 \end{figure}
-
-The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
-
-The speed up graph does show a slight speedup when using two workers instead of one, but this is negligible. What is interesting, is the speed up is not declining or increasing, but actually very constant. This is an indication that the overhead from communication is being compensated by the parallelism. This means we can improve this figure by using a more efficient way of communicating.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
 
 \subsection{Comparing implementations}
 
