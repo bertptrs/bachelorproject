@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 import graphhelper
 import tarfile
 import os.path as path
+from statistics import mean
 
 def plot(timings, label):
     coreList = sorted(timings.keys())
 
-    avgs = [sum(timings[coreNo]) / len(timings[coreNo]) for coreNo in coreList]
+    avgs = [mean(timings[coreNo]) for coreNo in coreList]
 
     speedups = [avgs[0] / avg for avg in avgs]
 
