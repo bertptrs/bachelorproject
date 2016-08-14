@@ -1,13 +1,9 @@
-#!/usr/bin/python2
+#!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
-
 import numpy
-
 import graphhelper
-
 import itertools
-
 
 def getTimings(fileList):
     timings = {}
@@ -35,13 +31,13 @@ def plot(timings):
     barWidth = 0.8 / numImplementations
 
     for implementation in timings:
-        averages = []
-        for nCores in timings[implementation]:
-            averages.append(sum(timings[implementation][nCores]) / len(timings[implementation][nCores]))
+        relevant = timings[implementation]
+        averages = {nCores: numpy.mean(relevant[nCores]) for nCores in relevant}
+        barHeights = [ averages[cores - 1] if cores - 1 in averages else 0 for cores in range(maxCores)]
 
-        plt.bar(index + i * barWidth - 0.4, averages, barWidth,
+        plt.bar(index + i * barWidth - 0.4, barHeights, barWidth,
                 label="Implementation " + str(implementation),
-                color=colors.next())
+                color=next(colors))
         i += 1
 
     plt.xlim(1 - 1, maxCores + 1)
