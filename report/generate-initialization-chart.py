@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import graphhelper
 import collections
 import math
+from statistics import mean
 
 def getTimings(filelist):
     timings = {}
@@ -15,7 +16,7 @@ def getTimings(filelist):
 
         timings[ncores].append(initialization)
 
-    return {k: sum(v) / len(v) for (k, v) in sorted(timings.items())}
+    return {k: mean(v) for (k, v) in timings.items()}
 
 def plot(timings):
     xvalues = sorted(timings.keys())
@@ -42,4 +43,4 @@ def main():
         plt.show()
 
 if __name__ == "__main__":
-	main()
+    main()
