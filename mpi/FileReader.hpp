@@ -16,6 +16,9 @@ class FileReader {
 		ifstream input;
 		string filename;
 
+		inline void skipComments();
+		inline void skipLine();
+
 	public:
 		FileReader(const string&);
 		~FileReader();

@@ -11,6 +11,18 @@ FileReader::~FileReader() {
 	input.close();
 }
 
+void FileReader::skipComments()
+{
+	while (!input.eof() && input.peek() == '%') {
+		skipLine();
+	}
+}
+
+void FileReader::skipLine()
+{
+	input.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
 Graph FileReader::read() {
 	Graph graph;
 
@@ -22,18 +34,19 @@ Graph FileReader::read() {
 	// http://www.cplusplus.com/forum/general/65804/
 
 	// Ignore headers and comments
-	while (input.peek() == '%') {
-		input.ignore(numeric_limits<streamsize>::max(), '\n');
-	}
+	skipComments();
 
 	int M, N, L;
 
 	input >> M >> N >> L;
+	skipLine();
 
 	for (int i = 0; i < L; i++) {
+		skipComments();
 		int m, n;
 		weight_t c;
 		input >> m >> n >> c;
+		skipLine();
 
 		graph.addEdge(m, n, c);
 	}
