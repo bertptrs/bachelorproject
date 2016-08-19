@@ -10,7 +10,7 @@ void parseUserInput(int argc, char** argv) {
 		fprintf(stderr, "GTgraph-rmat [-options]\n");
 		fprintf(stderr, "\t-c ###  config file to use\n");
 		fprintf(stderr, "\t-n ###  no. of vertices       (default -- 10^7)\n");
-		fprintf(stderr, "\t-m ###  no. of directed edges (default -- 10^8)\n");        		 
+		fprintf(stderr, "\t-m ###  no. of directed edges (default -- 10^8)\n");
 		fprintf(stderr, "\t-o ###  output file to write the graph to\n");
 		fprintf(stderr, "\t-h      display this message\n\n");
 		fprintf(stderr, "No config file specified\n");
@@ -23,7 +23,7 @@ void parseUserInput(int argc, char** argv) {
 		while((c = getopt(argc, argv, "c:n:m:o:h:")) != -1) {
 
 			switch (c) {
-				
+
 				case 'o':
 				outfileSpecified = 1;
 				if ((!configfileSpecified) && (!varSpecified)) {
@@ -35,7 +35,7 @@ void parseUserInput(int argc, char** argv) {
 				fprintf(stderr, "Graph will be written to %s\n", OUTFILE);
 				updateLog();
 				break;
-				
+
 				case 'c':
 				fprintf(stderr, "Warning: The parameters specified in the config file will be applied and all other input arguments will be ignored\n");
 				configfileSpecified = 1;
@@ -51,7 +51,7 @@ void parseUserInput(int argc, char** argv) {
 				}
 				updateLog();
 				break;
-		
+
 				case 'n':
 				if (configfileSpecified)
 					break;
@@ -72,10 +72,10 @@ void parseUserInput(int argc, char** argv) {
                                         varSpecified = 1;
                                 }
                                 m = atol(optarg);
-                                fprintf(stderr, "m is set to %ld\n", n);
+                                fprintf(stderr, "m is set to %ld\n", m);
                                 updateLog();
                                 break;
-	
+
 				case 'h':
 				usage();
 
@@ -84,12 +84,12 @@ void parseUserInput(int argc, char** argv) {
 			}
 		}
 
-		
+
 	} else {
 		fprintf(stderr, "Invalid input arguments\n");
 		usage();
 	}
-	
+
 }
 
 void usage() {
@@ -100,12 +100,12 @@ void usage() {
         fprintf(stderr, "\t-m ###  no. of directed edges (default -- 10^8)\n");
         fprintf(stderr, "\t-o ###  output file to write the graph to\n");
         fprintf(stderr, "\t-h      display this message\n\n");
-	
+
 	exit(-1);
 }
 
-/* Default Input parameters for graph generation. These values can 
- * also be specified in a configuration file and passed as input to 
+/* Default Input parameters for graph generation. These values can
+ * also be specified in a configuration file and passed as input to
  * the graph generator */
 void getParams() {
 
@@ -117,18 +117,18 @@ void getParams() {
 	c = 0.15;
 	d = 0.25;
 
-	MAX_WEIGHT = 100; 
+	MAX_WEIGHT = 100;
 	MIN_WEIGHT = 0;
 
 	SELF_LOOPS = 0;
 	STORE_IN_MEMORY = 1;
-	
+
 	SORT_EDGELISTS = 1;
 	SORT_TYPE = 0;
 	WRITE_TO_FILE = 1;
 
-	strcpy(OUTFILE, "sample.gr");	
-	strcpy(LOGFILE, "log");	
+	strcpy(OUTFILE, "sample.gr");
+	strcpy(LOGFILE, "log");
 }
 
 void getParamsFromFile(char* configfile) {
