@@ -43,7 +43,6 @@ def plot(timings):
     plt.xlim(1 - 1, maxCores + 1)
     plt.xlabel('MPI worker count')
     plt.ylabel('Runtime (s)')
-    plt.xticks(index, index)
     plt.legend()
 
 def main():
