@@ -51,6 +51,13 @@ After running every implementation of a varying amount of MPI workers, we can co
 
 This is because the overhead of setting up the parallel system is very much platform dependent, and not related to the problem we try to solve. The MPI initialization can be reused as well without overhead, so the cost is negligible for real world scenarios. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers.
 
+\begin{table}
+    \centering
+    \input{generated/runtime-table.tex}
+    
+    \caption{Mean and standard deviation for algorithm run times in several configurations.}
+\end{table}
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{graphs/graph_initialization}
   \caption{Cost of initialization as a function of the number of workers.}
