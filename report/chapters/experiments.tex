@@ -19,7 +19,7 @@ To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. Th
 
     \item[Erd\H{o}s-Renyi] takes a number of edges $n$ and a probability $p$ of an edge between any pair of nodes existing. Then it iterates over all pairs of nodes and generates an edge with probability $p$. This is mostly equivalent to the \textbf{random} generator when $p = \frac{m}{n \times (n - 1)}$.
 
-    \item[R-MAT] generates graphs that follow a power law for the degree distribution of the nodes. This means that for any degree $k$, $P(k) \propto k^{-\gamma}$.\footnote{In directed graphs nodes have two degrees, $k_{in}$ and $k_{out}$ because the number of edges coming in is not necessarily the same as the number of edges going out. The power law distribution then simply applies to both separately.} This is a property present in most networks. \emph{Hier moet nog een citaat bij, uit het boek voor Complex Networks.}
+    \item[R-MAT] generates graphs that follow a power law for the degree distribution of the nodes. This means that for any degree $k$, $P(k) \propto k^{-\gamma}$.\footnote{In directed graphs nodes have two degrees, $k_{in}$ and $k_{out}$ because the number of edges coming in is not necessarily the same as the number of edges going out. The power law distribution then simply applies to both separately.} This is a property commonly encountered in various networks. \cite{newman2005power}
     
     \item[SSCA2] generates locally clustered graphs, meaning it creates graphs that are very well connected in small communities with little connections between them.
 \end{description}
@@ -90,7 +90,7 @@ In \autoref{fig:implmementations} we show the run times of the different impleme
 \begin{figure}[b!]
 	\centering
   \includegraphics[width=0.9\textwidth]{graphs/graph_implementations}
-  \caption{Comparison of implementations by execution time on the \texttt{internet} data set.}
+  \caption{Comparison of implementations by execution time on the \texttt{internet} data set. \emph{Idee: in plaats van een grotere, alle vier grafieken kleiner tonen (met bredere balken voor de leesbaarheid) om aan te tonen dat dit verschijnsel universeel is.}}
   \label{fig:implmementations}
 \end{figure}
 
