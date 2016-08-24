@@ -17,7 +17,7 @@ clean:
 graphs/graph_speedup.pdf: $(sort $(wildcard data/*.tar.gz)) | graphs
 	./generate-speedup-chart.py -o $@ $^
 
-graphs/graph_implementations.pdf: $(wildcard data/cage11-impl*.tar.gz) | graphs
+graphs/graph_implementations.pdf: $(wildcard data/internet-impl*.tar.gz) | graphs
 	./generate-implementation-chart.py -o $@ $^
 
 graphs/graph_initialization.pdf: $(wildcard data/*.tar.gz) | graphs

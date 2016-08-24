@@ -7,9 +7,12 @@ The DAS scheduler is responsible for placing algorithms on nodes. To circumvent 
 \emph{Deze sectie mag weg/moet samen worden gevoegd met een soortgelijke sectie in Implementation}
 
 \section{Experiment data}
-For our experiment data, we used real-world graphs as well as generated graphs. For each graph we chose a specific source and sink for our experiments so that we could easily repeat and average results. An overview of the used graphs and configuration used can be found in \autoref{tab:data-overview}.
+For our experiment data, we used real-world graphs as well as generated graphs. For each graph we chose a specific source and sink for our experiments so that we could easily repeat and average results. An overview of the used graphs and configuration used can be found in \autoref{tab:data-overview}. Not all configurations are shown, however.
 
-The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} for our real-world sample graphs. Even the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. \autoref{tab:data-overview} shows t
+The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} for our real-world sample graphs. Even the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. From the collection, we chose two graphs:
+\begin{description}
+    \item[cage11]
+\end{description}
 
 To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. This program can generate graphs using any of four algorithms:
 \begin{description}
@@ -34,7 +37,7 @@ For each graph, we searched for a combination of source/sink that took a reasona
 		\hline
 		cage11 & DNA electrophoresis & \texttt{vanHeukelum/cage11} & 39082 & 559722 & 1361 & 28129 \\
 		internet & Connectivity of internet routers & \texttt{Pajek/internet} & 124651 & 207214 & 94268 & 1046 \\
-		rmat & Scale-free random graph & GTgraph R-MAT & 30000 & 5000000 & ? & ? \\
+		rmat & Scale-free random graph & GTgraph R-MAT & 30000 & 5000000 & 89872 & 59366 \\
 		ssca2 & Hierarchically clustered random graph & GTgraph SSCA2 & 32768 & 1570139 & 21264 & 7066 \\
 	\end{tabularx}
 	\caption{An overview of the data sets and configurations used.}
@@ -47,24 +50,27 @@ Graph algorithms generally do not parallellize well % TODO: Citation needed
 so we do not expect major speedups. Any speedups will be visible the most when we use 8 or less instances. This is because the overhead of MPI communication within one physical node is less than between different nodes. As such, a performance drop is to be expected when a second node is added.
 
 \section{Results}
-After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time, and have excluded the time needed for the MPI system to initialize.
+After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time only. An overview of that can be seen in \autoref{tab:algorithm-runtime}.
 
-This is because the overhead of setting up the parallel system is very much platform dependent, and not related to the problem we try to solve. The MPI initialization can be reused as well without overhead, so the cost is negligible for real world scenarios. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers.
+Missing entries are configurations that failed to complete. This is either due to memory constraints (the platform could not always run 8 workers on a single physical node) or due to the time limit being reached. Any trial runs taking over two hours were stopped.
 
 \begin{table}
     \centering
     \input{generated/runtime-table.tex}
-    
     \caption{Mean and standard deviation for algorithm run times in several configurations.}
+    \label{tab:algorithm-runtime}
 \end{table}
+
+We have decided to leave out the algorithm initialization time (i.e. initializing MPI and reading in the data) as this is unrelated to the problem being solved, and it would only serve to hide potential gains. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers, so even at larger scale this should not be a problem.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{graphs/graph_initialization}
-  \caption{Cost of initialization as a function of the number of workers.}
+  \caption{Cost of initialization as a function of the number of workers. This graph shows an average over all trial runs in this thesis, not one specific graph.}
   \label{fig:initialization_time}
 \end{figure}
 
 \subsection{Relative speed up}
+What we were most interested in, was the possibility of a speed up when running the algorithm in parallel. 
 The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
 
 The speed up graph does show a slight speedup when using two workers instead of one, but this is negligible. What is interesting, is the speed up is not declining or increasing, but actually very constant. This is an indication that the overhead from communication is being compensated by the parallelism. This means we can improve this figure by using a more efficient way of communicating.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
