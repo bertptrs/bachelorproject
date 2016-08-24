@@ -4,15 +4,14 @@
 As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
 The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 5 times. We vary the number of worker nodes in our experiment. Due to limitations of the platform, we can either run a multiple of 8 workers or less than eight workers. This is because DAS places 8 workers on a single physical platform.
 
-\emph{Deze sectie mag weg/moet samen worden gevoegd met een soortgelijke sectie in Implementation}
+\emph{Deze sectie over DAS mag weg/moet samen worden gevoegd met een soortgelijke sectie in Implementation}
+
+To test the previously described implementations of the Push Lift algorithm, we run it repeatedly in different configurations on several different data sets. The algorithm is run with 1, 2, 4, 8, 16, 24, 32, \textellipsis, 120 (powers of two up to eight, then multiples of 8 up to 120)\footnote{Even though the DAS cluster has enough nodes available for 128 workers, there was an outage preventing us from using the entire cluster. Thus, one node remained unused.} workers to see whether there is any speed up when running the algorithm in parallel.
 
 \section{Experiment data}
 For our experiment data, we used real-world graphs as well as generated graphs. For each graph we chose a specific source and sink for our experiments so that we could easily repeat and average results. An overview of the used graphs and configuration used can be found in \autoref{tab:data-overview}. Not all configurations are shown, however.
 
-The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} for our real-world sample graphs. Even the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. From the collection, we chose two graphs:
-\begin{description}
-    \item[cage11]
-\end{description}
+The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} for our real-world sample graphs. Even the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. From the collection, we chose two graphs: \texttt{vanHeukelem/Cage11}, a biological network, and \texttt{Pajek/Internet}, a network topology of internet routers.
 
 To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. This program can generate graphs using any of four algorithms:
 \begin{description}
@@ -46,13 +45,14 @@ For each graph, we searched for a combination of source/sink that took a reasona
 
 
 \section{Expectations}
-Graph algorithms generally do not parallellize well % TODO: Citation needed
-so we do not expect major speedups. Any speedups will be visible the most when we use 8 or less instances. This is because the overhead of MPI communication within one physical node is less than between different nodes. As such, a performance drop is to be expected when a second node is added.
+Even with the optimizations described in the previous chapter, the algorithm needs a lot of communication between workers about its current state. Therefore we will only see any real performance gains when the workers have to rarely wait for input and are mostly busy. This is not an ideal scenario.
+
+Furthermore, since we run the algorithm with 8 workers on a single physical DAS node, the communication latency increases greatly after scaling past 8 workers. We expect to see this gap in the performance as well.
 
 \section{Results}
-After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time only. An overview of that can be seen in \autoref{tab:algorithm-runtime}.
+After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time only. An overview of that can be seen in \autoref{tab:algorithm-runtime}. It should be noted that the standard deviation on the runtime is fairly low compared to the actual runtime. This shows that despite network jitter and other external factors, the run time of the algorithm is rather consistent
 
-Missing entries are configurations that failed to complete. This is either due to memory constraints (the platform could not always run 8 workers on a single physical node) or due to the time limit being reached. Any trial runs taking over two hours were stopped.
+Missing entries in the table (and the following graphs) are configurations that failed to complete within the time limit of two hours. We feel this time limit allows us to make better use of the limited computation time available on the DAS cluster.
 
 \begin{table}
     \centering
@@ -70,23 +70,32 @@ We have decided to leave out the algorithm initialization time (i.e. initializin
 \end{figure}
 
 \subsection{Relative speed up}
-What we were most interested in, was the possibility of a speed up when running the algorithm in parallel. 
-The first thing to notice is that there is very little speedup, if any, when the algorithm is run in parallel, as seen in \autoref{fig:speedup_cage11}.\footnote{Only the fastest implementation was considered for the speedup graph. Other implementations followed a similar pattern.} The timings are more or less the same until 8 workers, after which there is a slight slowdown. This can be explained by the increased latency when communicating between physical nodes.
-
-The speed up graph does show a slight speedup when using two workers instead of one, but this is negligible. What is interesting, is the speed up is not declining or increasing, but actually very constant. This is an indication that the overhead from communication is being compensated by the parallelism. This means we can improve this figure by using a more efficient way of communicating.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
+What we were most interested in, was the possibility of a speed up when running the algorithm in parallel. In \autoref{fig:speedup_cage11}, we see the relative speed up of both working implementations on the various graphs. In this figure, we define the relative speed up as the time it took the algorithm to complete (on average) relative to the time it took that that implementation \emph{with the least number of workers to complete within two hours}. In other words, in the case of \texttt{cage11-impl2}, which first succeeded with 8 workers, the speed up is defined relative to that rather than to the result with 1 workers.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{graphs/graph_speedup}
-  \caption{Relative speedup when running a specific route on the datasets.}
+  \caption{Relative speed up when running a specific route on the datasets.}
   \label{fig:speedup_cage11}
 \end{figure}
 
-\subsection{Comparing implementations}
+The worker-axis is scaled logarithmically to highlight the performance gains within the first physical node, before external communication needs to occur. Most trends indeed seem to flatten at 8 workers, which is to be expected since the communication latency increases at that point.
 
-\begin{figure}
-  \includegraphics[width=\textwidth]{graphs/graph_implementations}
-  \caption{Comparison of implementations by execution time.}
+As expected, the figure shows very little speed up across the board. In particular, implementation 1 hardly shows any performance gains at all while implementation 2 improves 3-5 fold while using 120 cores. This most likely is due to the massive overhead in communication.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
+
+\subsection{Comparing implementations}
+Even though \autoref{fig:speedup_cage11} appears to show that implementation 2 has better performance when run in parallel than implementation 1, this is hardly fair. As seen in \autoref{tab:algorithm-runtime}, the run time of the former is always longer than that of the latter.\footnote{To add to this, implementation 1 always terminated within the time limit while implementation 2 did not.}
+
+In \autoref{fig:implmementations} we show the run times of the different implementations on the same graph, and we can immediately see that, even without any speed up, the first implementation still is faster. The second merely gets closer in performance. This tells us that, for the second implementation, there is significantly more time being spent on computation and not communication. Only when the majority of time is being spent in communication (the networking systems were the same for both) rather than the actual algorithm, the run times start to get similar.
+
+\begin{figure}[b!]
+	\centering
+  \includegraphics[width=0.9\textwidth]{graphs/graph_implementations}
+  \caption{Comparison of implementations by execution time on the \texttt{internet} data set.}
   \label{fig:implmementations}
 \end{figure}
 
-Even if parallel implementations do not provide a good result, we can still look at how different implementations compare. \autoref{fig:implmementations} shows that our first implementation is without exception the better one.
+When looking at the complexities as shown in \autoref{tab:implementation-complexities}, we can see that the second implementation will only do better if the sizes of our graph $\log |V|$ and $\log |E|$ are significantly less important than the branching factor $B$. As the average branching factor is the number of edges divided by the number of nodes, this is unlikely, as these are usually of similar order of magnitude.
+
+Additionally, the memory access pattern of trees is less friendly to memory caches than that of arrays, which also does not help in favour of the second implementation. \emph{Hier moet nog een citaat bij}
+
+\emph{TODO: Zorg dat de figuren enigszins zinnig op pagina's staan.}
