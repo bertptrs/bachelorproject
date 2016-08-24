@@ -1,11 +1,11 @@
 \chapter{Conclusion}
 
-In \autoref{sec:forelem-pushlift}, we have discussed how to implement Push-Lift in the \forelem framework. In \autoref{sec:das4} and \autoref{sec:implementations} we discussed how we obtained executable programs for that implementation. And finally in \autoref{chp:experiments} we ran and benchmarked those implementations on various parallel configurations.
+In this thesis, we have looked at the max-flow min-cut problem and several algorithms that solve it. We have then taken the Push-Lift algorithm and implemented it in the \emph{forelem} framework. We have then derived several parallel implementations and tested them against various graphs.
 
-In doing so, we found that even though there are differences between the implementations, they are nothing we could not haved said without doing the benchmarks, but rather by looking at the computational complexities it would have been obvious.
+In our experiments, we have seen that --- even though one implementation is significantly better than the other --- both implementations do not scale well when run in parallel, even when using larger numbers of workers. This can be attributed the poor locality of the algorithm, requiring a lot of communication to run.
 
-\section{Future work}
+As communication appears to be the bottleneck, it is also the first site to improve. When splitting work between workers, nodes have been divided by their node number. If a more local subdivision could be made, (for instance, by using graph clustering detection techniques), less communication between workers would be necessary, greatly reducing the overhead. Workers only need to communicate between each other when information changes on the boundary between them. If those boundaries were minimized, so would the needed communication. 
 
-A lot of improvement can be done on materializing implementations for graph algorithms. When an automated materilization is used, more different implementations can be generated, which in turn feature trade offs instead of one solution being the best.
+The communication layer itself could be reworked to be more efficient. Currently, it each \emph{push} and \emph{lift} operation is transferred separately, incurring MPI overhead for every operation communicated. Combining the results and possibly sending them asynchronously could also improve performance.
 
-Also, while the current implementation gains no speed up when executed in parallel, that does not mean that no speed up can be gained. A more efficient way of sharing data, for instance, by sending updates in batches rather than one by one, can improve the execution times significantly.
+Most importantly, more work can be done in automating the translation from \emph{forelem} to code. In this thesis, we made an approximation by hand, but an automated translation could create more equivalent implementations and try more variations. The tested implementations varied only in underlying data structure, but order of execution could also easily be exchanged. This would also allow the lessons learned here to be applied to other problems.
