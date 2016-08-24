@@ -1,5 +1,6 @@
 #include "PushLiftImpl2.hpp"
 #include <cassert>
+#include <exception>
 
 int PushLiftImpl2::getHeight(const int& nodeNo) const
 {
@@ -53,6 +54,11 @@ void PushLiftImpl2::setCapacity(const int& from, const int& to, const weight_t& 
 
 vector<int> PushLiftImpl2::getNeighbours(int nodeNo) const
 {
+  auto edgeList = edges.find(nodeNo);
+  if (edgeList == edges.end()) {
+    return {};
+  }
+
   vector<int> result;
 
   for (auto& edge : edges.at(nodeNo)) {
