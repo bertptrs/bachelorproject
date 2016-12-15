@@ -27,4 +27,4 @@ generated/runtime-table.tex: $(wildcard data/*.tar.gz) | generated
 	./generate-runtime-table.py -o $@ -c 1 4 8 16 64 120 -- $^
 
 $(DIRS):
-	mkdir $@
+	mkdir -p $@

@@ -9,7 +9,7 @@ To test the previously described implementations of the Push Lift algorithm, we 
 \section{Experiment data}
 For our experiment data, we used real-world graphs as well as generated graphs. For each graph we chose a specific source and sink for our experiments so that we could easily repeat and average results. An overview of the used graphs and configuration used can be found in \autoref{tab:data-overview}. Not all configurations are shown, however.
 
-The University of Florida Sparse Matrix Collection \cite{FloridaSparseMatrix} for our real-world sample graphs. Even the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. From the collection, we chose two graphs: \texttt{vanHeukelem/Cage11}, a biological network, and \texttt{Pajek/Internet}, a network topology of internet routers.
+The real-world sample graphs were obtained from the University of Florida Sparse Matrix Collection~\cite{FloridaSparseMatrix}. Although the collection is mostly unrelated to graphs, some matrices are in fact regular (natural) networks. We looked for well-connected graphs weighted graphs of a size for which max-flow computations take a significant but not too large time to complete. From the collection, we chose two graphs: \texttt{vanHeukelem/Cage11}, a biological network, and \texttt{Pajek/Internet}, a network topology of internet routers.
 
 To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. This program can generate graphs using any of four algorithms:
 \begin{description}
@@ -17,7 +17,7 @@ To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. Th
 
     \item[Erd\H{o}s-Renyi] takes a number of edges $n$ and a probability $p$ of an edge between any pair of nodes existing. Then it iterates over all pairs of nodes and generates an edge with probability $p$. This is mostly equivalent to the \textbf{random} generator when $p = \frac{m}{n \times (n - 1)}$.
 
-    \item[R-MAT] generates graphs that follow a power law for the degree distribution of the nodes. This means that for any degree $k$, $P(k) \propto k^{-\gamma}$.\footnote{In directed graphs nodes have two degrees, $k_{in}$ and $k_{out}$ because the number of edges coming in is not necessarily the same as the number of edges going out. The power law distribution then simply applies to both separately.} This is a property commonly encountered in various networks. \cite{newman2005power}
+    \item[R-MAT] generates graphs that follow a power law for the degree distribution of the nodes. This means that for any degree $k$, $P(k) \propto k^{-\gamma}$.\footnote{In directed graphs nodes have two degrees, $k_{in}$ and $k_{out}$ because the number of edges coming in is not necessarily the same as the number of edges going out. The power law distribution then simply applies to both separately.} This is a property commonly encountered in various networks~\cite{newman2005power}.
 
     \item[SSCA2] generates locally clustered graphs, meaning it creates graphs that are very well connected in small communities with little connections between them.
 \end{description}
@@ -50,7 +50,7 @@ Furthermore, since we run the algorithm with 8 workers on a single physical DAS 
 \section{Results}
 After running every implementation of a varying amount of MPI workers, we can compare the execution time of each algorithm. For the results, we have looked at algorithm execution time only. An overview of that can be seen in \autoref{tab:algorithm-runtime}. It should be noted that the standard deviation on the runtime is fairly low compared to the actual runtime. This shows that despite network jitter and other external factors, the run time of the algorithm is rather consistent
 
-Missing entries in the table (and the following graphs) are configurations that failed to complete within the time limit of two hours. We feel this time limit allows us to make better use of the limited computation time available on the DAS cluster.
+Missing entries in the table (and the following graphs) are configurations that failed to complete within the time limit of two hours.
 
 \begin{table}
     \centering
@@ -59,7 +59,7 @@ Missing entries in the table (and the following graphs) are configurations that 
     \label{tab:algorithm-runtime}
 \end{table}
 
-We have decided to leave out the algorithm initialization time (i.e. initializing MPI and reading in the data) as this is unrelated to the problem being solved, and it would only serve to hide potential gains. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers, so even at larger scale this should not be a problem.
+We have decided to leave out the algorithm initialization time (i.e.\ initializing MPI and reading in the data) as this is unrelated to the problem being solved, and it would only serve to hide potential gains. Furthermore, as shown in \autoref{fig:initialization_time}, the cost of initializing does not increase that much with the number of workers, so even at larger scale this should not be a problem.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{graphs/graph_initialization}
@@ -81,16 +81,18 @@ The worker-axis is scaled logarithmically to highlight the performance gains wit
 As expected, the figure shows very little speed up across the board. In particular, implementation 1 hardly shows any performance gains at all while implementation 2 improves 3-5 fold while using 120 cores. This most likely is due to the massive overhead in communication.\footnote{In fact, the results produced by Hong et al \cite{LockFreeMultithreadedMaxFlow} on a shared memory implementation prove this, as shared memory has a lower overhead than a message passing implementation such as this one.}
 
 \subsection{Comparing implementations}
-Even though \autoref{fig:speedup_cage11} appears to show that implementation 2 has better performance when run in parallel than implementation 1, this is hardly fair. As seen in \autoref{tab:algorithm-runtime}, the run time of the former is always longer than that of the latter.\footnote{To add to this, implementation 1 always terminated within the time limit while implementation 2 did not.}
+Even though \autoref{fig:speedup_cage11} suggests that implementation 2 scales better when run in parallel than implementation 1, this is hardly fair. As seen in \autoref{tab:algorithm-runtime}, the run time of the former is always longer than that of the latter.
 
 In \autoref{fig:implmementations} we show the run times of the different implementations on the same graph, and we can immediately see that, even without any speed up, the first implementation still is faster. The second merely gets closer in performance. This tells us that, for the second implementation, there is significantly more time being spent on computation and not communication. Only when the majority of time is being spent in communication (the networking systems were the same for both) rather than the actual algorithm, the run times start to get similar.
 
 \begin{figure}[b!]
 	\centering
   \includegraphics[width=0.9\textwidth]{graphs/graph_implementations}
-  \caption{Comparison of implementations by execution time on the \texttt{internet} data set. \emph{Idee: in plaats van een grotere, alle vier grafieken kleiner tonen (met bredere balken voor de leesbaarheid) om aan te tonen dat dit verschijnsel universeel is.}}
+  \caption{Comparison of implementations by execution time on the \texttt{internet} data set.}
   \label{fig:implmementations}
 \end{figure}
+
+\pagebreak
 
 When looking at the complexities as shown in \autoref{tab:implementation-complexities}, we can see that the second implementation will only do better if the sizes of our graph $\log |V|$ and $\log |E|$ are significantly less important than the branching factor $B$. As the average branching factor is the number of edges divided by the number of nodes, this is unlikely, as these are usually of similar order of magnitude.
 

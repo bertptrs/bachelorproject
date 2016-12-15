@@ -21,7 +21,7 @@ def getTimings(fileList):
     return timings
 
 def plot(timings):
-    colors = itertools.cycle(['b', 'g', 'r', 'c', 'm', 'y', 'k'])
+    colors = itertools.cycle(['k', 'w', 'r', 'c', 'm', 'y', 'k'])
 
     maxCores = max(timings[1].keys())
     numImplementations = len(timings)
