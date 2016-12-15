@@ -30,7 +30,7 @@ It then makes sense to consider two sets of tuples. One of edges $E$ containing 
 
 We use a capacity and a remaining capacity for the flow, so that we can combine $c(u, v)$ and $c(v, u)$ in one tuple, instead of 2. This allows the algorithm to be simpler. Also, this circumvents the limitation that it is very difficult in \forelem to work on one tuple, and then to modify another.\footnote{It should be noted however, that this is not impossible. Instead, you could make a \forelem loop that you know will only match a single tuple. This does add a lot of loops, with a lot of variations that will not be efficient.}
 
-The finalized implementation for the Push-Lift algorithm can be found in Appendix \ref{app:pushlift}.
+The finalized implementation for the Push-Lift algorithm can be found in Appendix~\ref{app:pushlift}.
 
 \section{DAS-4 and MPI}
 \label{sec:das4}
@@ -65,7 +65,9 @@ Due to time constraints, it was not possible to create a program that could mate
 	\item Our final implementation was a naive one, with all edge stored a an array of tuples, with the index set computed within the loop. This would serve as a baseline, but it did not complete any of the test runs within the allowed time limit of 120 minutes\footnote{On the DAS-4, the job time limit is 120 minutes, but exceptions may be made outside of office hours. For the experiment to be repeated, however, shorter execution times were preferred.} and will therefore be excluded from the rest of this thesis.
 \end{enumerate}
 
-This in itself provides us with some complexities for some operations associated with the algorithm. These complexities are shown in \autoref{tab:implementation-complexities}. Here, $|V|$ denotes the number of nodes, $|E|$ the number of edges, and $B$ the branching factor of the graph.
+This in itself provides us with some complexities for some operations associated with the algorithm. These complexities are shown in \autoref{tab:implementation-complexities}. Here, $|V|$ denotes the number of nodes, $|E|$ the number of edges, and $B$ the branching factor of the graph, which is the average number of edges per node.
+
+From the complexities itself we can see that the first implementation has a trade-off compared to the second one. In the former we can find a particular edge in our data in linear time with respect to the branching factor, while for the latter we need a logarithmic time with respect to the total number of edges. In the next chapter we will see that the average branching factor in data sets is slightly larger than the binary logarithm of the number of nodes.  However, the cache access pattern for the first implementation is better (sequential scan as opposed to random access) so this difference may not be insignificant.
 
 \begin{table}
 \centering
