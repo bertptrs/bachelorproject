@@ -37,12 +37,12 @@ It should be noted that the flow configuration for the maximum flow is not neces
 
 It should be noted that the max flow problem is not an unsolved problem. There have been several implementations, with various time and memory complexities. Early algorithms used the augmenting paths\cite{LockFreeMultithreadedMaxFlow} and construct additional routes from sources to sinks, most notably the Ford Fulkerson algorithm (see  \autoref{sec:fordfulkerson}).
 
-Goldberg et al produced a different result by constructing a preflow instead of a valid flow\cite{ANewApproachToTheMaxFlowProblem}, and pushing as much flow from the source to the sink, see \autoref{subsect:pushrelabel}. This thesis will attempt to work with the Push Lift algorithm proposed by Bo Hong \cite{LockFreeMultithreadedMaxFlow}, which allows a lock free parallel execution of the algorithm.
+Goldberg et al.\ produced a different result by constructing a preflow instead of a valid flow\cite{ANewApproachToTheMaxFlowProblem}, and pushing as much flow from the source to the sink, see \autoref{subsect:pushrelabel}. This thesis will attempt to work with the Push Lift algorithm proposed by Bo Hong \cite{LockFreeMultithreadedMaxFlow}, which allows a lock-free parallel execution of the algorithm.
 
 \subsection{Ford-Fulkerson algorithm}
 \label{sec:fordfulkerson}
 
-The Ford-Fulkerson algorithm computes for a given directed graph of edges $(u, v, c)$ with $u$ and $v$ nodes and $c$ the capacity for the edge, the maximum ``flow'' from a given source $s$ to a sink $t$, given that the flow of an edge $e$ can never exceed its capacity. The algorithm assumes that
+The Ford-Fulkerson algorithm\cite{ford1956maximal} computes for a given directed graph of edges $(u, v, c)$ with $u$ and $v$ nodes and $c$ the capacity for the edge, the maximum ``flow'' from a given source $s$ to a sink $t$, given that the flow of an edge $e$ can never exceed its capacity. The algorithm assumes that
 
 \begin{itemize}
 \item there are no parallel edges, meaning that
@@ -94,11 +94,11 @@ The algorithm works as follows. We define $f(u,v)$ and $c(u, v)$ as the flow and
 \subsection{Push-Relabel algorithm}
 \label{subsect:pushrelabel}
 
-We define the set of nodes, $V$, and the set of edges $E$. Furthermore, we define the function $\Delta(u)$ which denotes the current excess flow at node $u$, and $F(u, v)$ and $C(u, v)$, which denote the current flow and the flow capacity from $u$ to $v$ respectively. Both start at $0$ if the edge does not exist.
+We define the set of nodes, $V$, and the set of edges $E$. Furthermore, we define the function $\Delta(u)$ which denotes the current excess flow\footnote{created by the preflow} at node $u$, and $F(u, v)$ and $C(u, v)$, which denote the current flow and the flow capacity from $u$ to $v$ respectively. Both start at $0$ if the edge does not exist.
 
 A new property that is used, is the height function $H(u)$, which holds the current height for a given node. This height function is used to enforce an ordering.
 
-The algorithm has two operations. The \textsc{Push} operation pushes excess flow from a node $u$ to a connected node $v$. It is allowed only when $H(u) = H(v) + 1$. If no valid push is possible, a node must be relabeled with the \textsc{Relabel} operation. This method increases $H(u)$ to the minimum level so that a new push is allowed.
+The algorithm constsists of two operations. The \textsc{Push} operation pushes excess flow from a node $u$ to a connected node $v$. It is allowed only when $H(u) = H(v) + 1$. If no valid push is possible, a node must be relabeled with the \textsc{Relabel} operation. This method increases $H(u)$ to the minimum level so that a new push is allowed.
 
 The algorithm starts by performing a satisfying push on the source node, which fully uses all outgoing edges on that node. After that, the algorithm attempts to either push the excess flow to the sink, or, if it is not possible to push, relabels the node. When there are no longer any nodes with an excess flow, the algorithm is finished and the maximum flow can be calculated by summing the flow coming into the sink $t$ or the flow going out of the source $s$. A pseudo-code implementation can be seen in \autoref{algo:push-relabel}.
 
@@ -150,10 +150,10 @@ The algorithm starts by performing a satisfying push on the source node, which f
 
 \section{The forelem language}
 
-For this research, we will use the forelem framework \cite{AVersatileTupleBasedOptimizationFramework} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
+For this research, we will use the forelem framework \cite{AVersatileTupleBasedOptimizationFramework} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples.
 
 
-Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. We will discuss some of the transformations here. The complete discussion can be found chapter 9 of \cite{AVersatileTupleBasedOptimizationFramework} but is out of the scope of this thesis.
+Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. We will discuss a number of possible the transformations here. The complete discussion can be found chapter 9 of \cite{AVersatileTupleBasedOptimizationFramework} but is out of the scope of this thesis.
 
 \begin{algorithm}
 	\caption{forelem algorithm for spare matrix dense vector multiplication}
@@ -180,8 +180,8 @@ forelem (i; i $\in$ pA)
 \end{lstlisting}
 \end{algorithm}
 
-First, we look at \autoref{algo:forelem-matvec}. Here, we have two dense vectors \texttt{B} and \texttt{C}, and a tuple representation of a matrix \texttt{A(column, row, value)}. We want to compute \texttt{A * B} and store the result in \texttt{C}. To do this, we iterate (in reverse) over \texttt{C} and use the relevant row in \texttt{A}. This means we need to materialize the indices in \texttt{A} for which the row number is \texttt{i}. To do this, we materialize these subsets into some structure. A possible solution is to create some multidimensional array, for which the outer index is our row number. However, since not every row will have the same number of non-zero elements in each row, this will lead to problems. Instead, we can create some indirection of this, which will allow for varying length arrays within the outer array. This is what we will be looking into in this thesis. The generalization of this is called Loop dependent materialization. However, since the other forms are not that applicable to this thesis, we will not be addressing them.
+First, we look at \autoref{algo:forelem-matvec}. Here, we have two dense vectors \texttt{B} and \texttt{C}, and a tuple representation of a matrix \texttt{A(column, row, value)}. We want to compute \texttt{A * B} and store the result in \texttt{C}. To do this, we iterate (in reverse) over \texttt{C} and process the tuples of the relevant row in \texttt{A}  (i.e.\ for which the row number is \texttt{i}). In order to generate executable code from this forelem-representation, we materialize these subsets into some structure. A possible solution is to create some multidimensional array, for which the outer index is our row number. However, since not every row will have the same number of non-zero elements in each row, this will lead to problems. Instead, we can create some indirection of this, which will allow for varying length arrays within the outer array. This is what we will be looking into in this thesis. The generalization of this is called Loop dependent materialization. However, since the other forms are not that applicable to this thesis, we will not be addressing them.
 
-Another thing we may change, is the structure of the tuples themselves. We can vary our tuples themselves. Consider \autoref{algo:forelem-sum}. Here, our tuples consist of two numbers, and we want to know the sum of their products. We can store them just as that: an array of tuples. However, it may be beneficial to split our array of tuples into two arrays of the two parts. Doing so may improve cache performace, depending on the access pattern. This procedure is called structure splitting. We will not be applying this.
+Another thing we may change is the structure of the tuples themselves. Consider \autoref{algo:forelem-sum}. Here, our tuples consist of two numbers, and we want to know the sum of their products. We can store them just as that: an array of tuples. However, it may be beneficial to split our array of tuples into two arrays of the two parts. Doing so may improve cache performace, depending on the access pattern. This procedure is called structure splitting.
 
-Finally, not every element of the tuple may be neccessary for the computation. Looking again at \autoref{algo:forelem-sum}, we can imagine that the tuples in \texttt{A} had an additional element, \texttt{part3}, which is not used in the computation. We can optimize this by leaving it out of the tuples, and creating a new array containing only the relevant parts, which would be smaller. We call this horizontal iteration space reduction. The smaller array might then improve cache performance. However, since in our algorithm all data is needed in some way, we chose not to implement this. Small improvements may be had by applying this to small local loops, but this would be difficult to implement manually in the absense of an automated compiler.
+Finally, not every element of the tuple may be necessary for the computation. Looking again at \autoref{algo:forelem-sum}, we can imagine that the tuples in \texttt{A} had an additional element, \texttt{part3}, which is not used in the computation. We can optimize this by leaving it out of the tuples, and creating a new array containing only the relevant parts, which would be smaller. We call this horizontal iteration space reduction. The smaller array might then improve cache performance. However, since in our algorithm all data is needed in some way, we chose not to implement this. Small improvements may be had by applying this to small local loops, but this would be difficult to implement manually in the absense of an automated compiler.
