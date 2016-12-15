@@ -57,14 +57,12 @@ This way, Safra's algorithm ensures that every node is inactive, and that there 
 \section{Generating implementations}
 \label{sec:implementations}
 
-Due to time constraints, it was not possible to create a program that could materialize the \forelem implementation of Push-Lift (see appendix \ref{app:pushlift}) into a compilable or runnable algorithm, as described in. %TODO reference
-Instead, we chose to materialize the algorithm by hand and implement some of the variations that a materializer may have produced. For the variations, we chose to vary the data structure in memory. This way, we constructed %TODO
-memory implementations. These are illustrated as follows:
+Due to time constraints, it was not possible to create a program that could materialize the \forelem implementation of Push-Lift (see appendix~\ref{app:pushlift}) into a compilable or runnable algorithm. Instead, we chose to implement the algorithm by hand and then vary the way we handle the indices for the graph structure. By materializing for the origin node of edges, we arrive at a structure similar to adjacency lists. These are illustrated as follows:
 
 \begin{enumerate}
-	\item The first implementation we constructed, can be seen as an adjecency list. Height and excess are stored in an array.
+	\item For the first implementation, we use nested varying length arrays. Height and excess are stored per-node in a second array as tuples.
 	\item The second implementation we constructed uses a sparse array (implemented as \texttt{map}, backed by a red-black tree) as the data structure for the capacities.
-	\item Our final implementation was a naive one, with all edge stored a an array of tuples. It did not complete any of the test runs within the allowed time limit of 15 minutes \footnote{On the DAS-4, the job time limit is 15 minutes. Outside of office hours, exceptions can be made, but for the purpose of this thesis, this was not deemed necessary.} and will therefore be excluded from the rest of this thesis.
+	\item Our final implementation was a naive one, with all edge stored a an array of tuples, with the index set computed within the loop. This would serve as a baseline, but it did not complete any of the test runs within the allowed time limit of 15 minutes\footnote{On the DAS-4, the job time limit is 15 minutes. Outside of office hours, exceptions can be made, but for the purpose of this thesis, this was not deemed necessary.} and will therefore be excluded from the rest of this thesis.
 \end{enumerate}
 
 This in itself provides us with some complexities for some operations associated with the algorithm. These complexities are shown in \autoref{tab:implementation-complexities}. Here, $|V|$ denotes the number of nodes, $|E|$ the number of edges, and $B$ the branching factor of the graph.
