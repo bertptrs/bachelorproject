@@ -152,9 +152,23 @@ The algorithm starts by performing a satisfying push on the source node, which f
 
 For this research, we will use the forelem framework \cite{AVersatileTupleBasedOptimizationFramework} to represent a general algorithm for the max flow problem. In this framework the data is expressed as several unordered sets of tuples and the algorithm can be expressed as an unordered loop with some operations over those tuples. To denote.
 
-As an example, we take a set of tuples \texttt{A} with two values, \texttt{part1} and \texttt{part2}, and we want to calculate the sum of $\text{\texttt{part1}} \times \text{\texttt{part2}}$, then an algorithm could be expressed as in \autoref{algo:forelem-sum}. In this algorithm, \texttt{pA} notates the set of indices for the tuple set A, with no guarantees of ordering of any kind. All that is known is that a tuple can be queried with an index. This leaves a compiler free to choose a data structure which does not have a strict ordering, like a set, or a structure without random access, like a linked list.
 
-Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. The actual transformations can be found in chapter 9 sections 4 to 7 of \cite{AVersatileTupleBasedOptimizationFramework} but is out of the scope of this thesis.
+Once an algorithm is formatted that way, it can be materialized, transformed and concretisised into a regular programming language (such as C or Python) to be compiled and executed normally. We will discuss some of the transformations here. The complete discussion can be found chapter 9 of \cite{AVersatileTupleBasedOptimizationFramework} but is out of the scope of this thesis.
+
+\begin{algorithm}
+	\caption{forelem algorithm for spare matrix dense vector multiplication}
+	\label{algo:forelem-matvec}
+\begin{lstlisting}[mathescape]
+for (i = N; i $\geq$ 1; i--)
+{
+	int sum = 0;
+	forelem (j; j $\in$ pA.row[i])
+		sum += B[A[j].col] * A[j].value;
+
+	C[i] = sum;
+}
+\end{lstlisting}
+\end{algorithm}
 
 \begin{algorithm}
 \caption{\emph{forelem} algorithm for summing the products of a set of tuples}
@@ -162,6 +176,12 @@ Once an algorithm is formatted that way, it can be materialized, transformed and
 \begin{lstlisting}[mathescape]
 sum = 0
 forelem (i; i $\in$ pA)
-	sum = sum + A[i].part1 $\times$ A[i].part2
+	sum = sum + A[i].part1 * A[i].part2
 \end{lstlisting}
 \end{algorithm}
+
+First, we look at \autoref{algo:forelem-matvec}. Here, we have two dense vectors \texttt{B} and \texttt{C}, and a tuple representation of a matrix \texttt{A(column, row, value)}. We want to compute \texttt{A * B} and store the result in \texttt{C}. To do this, we iterate (in reverse) over \texttt{C} and use the relevant row in \texttt{A}. This means we need to materialize the indices in \texttt{A} for which the row number is \texttt{i}. To do this, we materialize these subsets into some structure. A possible solution is to create some multidimensional array, for which the outer index is our row number. However, since not every row will have the same number of non-zero elements in each row, this will lead to problems. Instead, we can create some indirection of this, which will allow for varying length arrays within the outer array. This is what we will be looking into in this thesis. The generalization of this is called Loop dependent materialization. However, since the other forms are not that applicable to this thesis, we will not be addressing them.
+
+Another thing we may change, is the structure of the tuples themselves. We can vary our tuples themselves. Consider \autoref{algo:forelem-sum}. Here, our tuples consist of two numbers, and we want to know the sum of their products. We can store them just as that: an array of tuples. However, it may be beneficial to split our array of tuples into two arrays of the two parts. Doing so may improve cache performace, depending on the access pattern. This procedure is called structure splitting. We will not be applying this.
+
+Finally, not every element of the tuple may be neccessary for the computation. Looking again at \autoref{algo:forelem-sum}, we can imagine that the tuples in \texttt{A} had an additional element, \texttt{part3}, which is not used in the computation. We can optimize this by leaving it out of the tuples, and creating a new array containing only the relevant parts, which would be smaller. We call this horizontal iteration space reduction. The smaller array might then improve cache performance. However, since in our algorithm all data is needed in some way, we chose not to implement this. Small improvements may be had by applying this to small local loops, but this would be difficult to implement manually in the absense of an automated compiler.
