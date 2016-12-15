@@ -62,7 +62,7 @@ Due to time constraints, it was not possible to create a program that could mate
 \begin{enumerate}
 	\item For the first implementation, we use nested varying length arrays. Height and excess are stored per-node in a second array as tuples.
 	\item The second implementation we constructed uses a sparse array (implemented as \texttt{map}, backed by a red-black tree) as the data structure for the capacities.
-	\item Our final implementation was a naive one, with all edge stored a an array of tuples, with the index set computed within the loop. This would serve as a baseline, but it did not complete any of the test runs within the allowed time limit of 15 minutes\footnote{On the DAS-4, the job time limit is 15 minutes. Outside of office hours, exceptions can be made, but for the purpose of this thesis, this was not deemed necessary.} and will therefore be excluded from the rest of this thesis.
+	\item Our final implementation was a naive one, with all edge stored a an array of tuples, with the index set computed within the loop. This would serve as a baseline, but it did not complete any of the test runs within the allowed time limit of 120 minutes\footnote{On the DAS-4, the job time limit is 120 minutes, but exceptions may be made outside of office hours. For the experiment to be repeated, however, shorter execution times were preferred.} and will therefore be excluded from the rest of this thesis.
 \end{enumerate}
 
 This in itself provides us with some complexities for some operations associated with the algorithm. These complexities are shown in \autoref{tab:implementation-complexities}. Here, $|V|$ denotes the number of nodes, $|E|$ the number of edges, and $B$ the branching factor of the graph.

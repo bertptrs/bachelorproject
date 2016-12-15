@@ -1,7 +1,7 @@
 \chapter{Experiments}
 \label{chp:experiments}
 
-As a platform, we used the DAS 4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS 4. % TODO standardize das notation
+As a platform, we used the DAS-4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS-4.
 The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 5 times. We vary the number of worker nodes in our experiment. Due to limitations of the platform, we can either run a multiple of 8 workers or less than eight workers. This is because DAS places 8 workers on a single physical platform.
 
 \emph{Deze sectie over DAS mag weg/moet samen worden gevoegd met een soortgelijke sectie in Implementation}
@@ -20,7 +20,7 @@ To generate graphs, we looked to the GTgraph~\cite{bader2006gtgraph} toolkit. Th
     \item[Erd\H{o}s-Renyi] takes a number of edges $n$ and a probability $p$ of an edge between any pair of nodes existing. Then it iterates over all pairs of nodes and generates an edge with probability $p$. This is mostly equivalent to the \textbf{random} generator when $p = \frac{m}{n \times (n - 1)}$.
 
     \item[R-MAT] generates graphs that follow a power law for the degree distribution of the nodes. This means that for any degree $k$, $P(k) \propto k^{-\gamma}$.\footnote{In directed graphs nodes have two degrees, $k_{in}$ and $k_{out}$ because the number of edges coming in is not necessarily the same as the number of edges going out. The power law distribution then simply applies to both separately.} This is a property commonly encountered in various networks. \cite{newman2005power}
-    
+
     \item[SSCA2] generates locally clustered graphs, meaning it creates graphs that are very well connected in small communities with little connections between them.
 \end{description}
 
@@ -96,6 +96,4 @@ In \autoref{fig:implmementations} we show the run times of the different impleme
 
 When looking at the complexities as shown in \autoref{tab:implementation-complexities}, we can see that the second implementation will only do better if the sizes of our graph $\log |V|$ and $\log |E|$ are significantly less important than the branching factor $B$. As the average branching factor is the number of edges divided by the number of nodes, this is unlikely, as these are usually of similar order of magnitude.
 
-Additionally, the memory access pattern of trees is less friendly to memory caches than that of arrays, which also does not help in favour of the second implementation. \emph{Hier moet nog een citaat bij}
-
-\emph{TODO: Zorg dat de figuren enigszins zinnig op pagina's staan.}
+Additionally, the memory access pattern of trees is less friendly to memory caches than that of arrays, which also does not help in favour of the second implementation.
