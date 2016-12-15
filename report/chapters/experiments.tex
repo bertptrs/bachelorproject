@@ -4,8 +4,6 @@
 As a platform, we used the DAS-4 and its MPI implementation. We run algorithm with 8 instances per physical node, which is default for the DAS-4.
 The DAS scheduler is responsible for placing algorithms on nodes. To circumvent jitter in timings results, we repeat each experiment 5 times. We vary the number of worker nodes in our experiment. Due to limitations of the platform, we can either run a multiple of 8 workers or less than eight workers. This is because DAS places 8 workers on a single physical platform.
 
-\emph{Deze sectie over DAS mag weg/moet samen worden gevoegd met een soortgelijke sectie in Implementation}
-
 To test the previously described implementations of the Push Lift algorithm, we run it repeatedly in different configurations on several different data sets. The algorithm is run with 1, 2, 4, 8, 16, 24, 32, \textellipsis, 120 (powers of two up to eight, then multiples of 8 up to 120)\footnote{Even though the DAS cluster has enough nodes available for 128 workers, there was an outage preventing us from using the entire cluster. Thus, one node remained unused.} workers to see whether there is any speed up when running the algorithm in parallel.
 
 \section{Experiment data}
