@@ -14,4 +14,4 @@ $pdflatex = "xelatex -interaction=nonstopmode -synctex=1 --shell-escape %O %S";
 # Specify all cleanup files
 $clean_ext = "aux fdb_latexmk fls log nav  out snm %R.synctex.gz toc";
 
-@default_files = ('thesis.tex')
+@default_files = ('thesis.tex', 'presentation.tex')
